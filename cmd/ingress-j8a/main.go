@@ -22,7 +22,9 @@ func main() {
 		flag.PrintDefaults()
 	}
 
-	server.Bootstrap()
+	server.
+		NewServer().
+		Bootstrap()
 }
 
 func isFlagPassed(name string) bool {
