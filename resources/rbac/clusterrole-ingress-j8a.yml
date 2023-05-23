@@ -4,5 +4,8 @@ metadata:
   name: clusterrole-ingress-j8a
 rules:
   - apiGroups: [""]
-    resources: ["secrets", "services", "ingress", "configmaps", "roles", "rolebindings", "serviceaccounts"]
+    resources: ["secrets", "services", "configmaps", "roles", "rolebindings", "serviceaccounts"]
     verbs: ["get", "list", "watch"]
+  - apiGroups: ["extensions", "networking.k8s.io"]
+    resources: [ "ingresses" ]
+    verbs: [ "get", "list", "watch" ]
