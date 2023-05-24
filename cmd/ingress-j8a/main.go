@@ -10,21 +10,53 @@ import (
 	"time"
 )
 
+type Mode uint8
+
+const (
+	Server Mode = 1 << iota
+	Version
+	Usage
+)
+
 func main() {
+	mode := Server
 	go waitForSignal()
 
 	//for Bootstrap
 	defer recovery()
 
-	flag.Usage = func() {
-		fmt.Printf(`ingress-j8a[%s]"`, server.Version)
-		fmt.Print("\n")
-		flag.PrintDefaults()
+	v := flag.Bool("v", false, "print the server version")
+	h := flag.Bool("h", false, "print usage instructions")
+	flag.Usage = printUsage
+	flag.Parse()
+	if *v {
+		mode = Version
+	}
+	if *h {
+		mode = Usage
 	}
 
-	server.
-		NewServer().
-		Bootstrap()
+	switch mode {
+	case Server:
+		server.
+			NewServer().
+			Bootstrap()
+	case Version:
+		printVersion()
+	case Usage:
+		printUsage()
+	}
+
+}
+
+func printUsage() {
+	fmt.Printf(`ingress-j8a[%s]"`, server.Version)
+	fmt.Print("\n")
+	flag.PrintDefaults()
+}
+
+func printVersion() {
+	fmt.Printf("ingress-j8a[%s]\n", server.Version)
 }
 
 func isFlagPassed(name string) bool {
