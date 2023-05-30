@@ -6,11 +6,12 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/simonmittag/ingress-j8a)](https://img.shields.io/github/go-mod/go-version/simonmittag/ingress-j8a)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-##
-ingress-j8a skeleton project
+# What?
+ingress-j8a is heavily under construction and there is currently no public release. Do check the issues section for 
+current progress
 
-## Contributions
+# Contributions
 
-The j8a team welcomes all [contributors](https://github.com/simonmittag/j8a/blob/master/CONTRIBUTING.md). Everyone
+The ingress-j8a team welcomes all [contributors](https://github.com/simonmittag/ingress-j8a/blob/master/CONTRIBUTING.md). Everyone
 interacting with the project's codebase, issue trackers, chat rooms and mailing lists is expected to follow
-the [code of conduct](https://github.com/simonmittag/j8a/blob/master/CODE_OF_CONDUCT.md)
+the [code of conduct](https://github.com/simonmittag/ingress-j8a/blob/master/CODE_OF_CONDUCT.md)

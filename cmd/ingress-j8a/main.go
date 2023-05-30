@@ -50,8 +50,7 @@ func main() {
 }
 
 func printUsage() {
-	fmt.Printf(`ingress-j8a[%s]"`, server.Version)
-	fmt.Print("\n")
+	printVersion()
 	flag.PrintDefaults()
 }
 
