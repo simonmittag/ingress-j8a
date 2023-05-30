@@ -15,6 +15,19 @@ ingress-j8a is heavily under construction and there is currently no public relea
 borrows from ingress-nginx
 
 ![](art/ingress-j8a.png)
+1. The user deploys ingress resources to the cluster, or updates them. This also needs to cater for configMap and secrets updates
+2. A cache that runs inside ingress-j8a monitors for updates to kube resources in all namespaces. it versions the config.
+3. the control loop that continuously waits for config changes is notified.
+4. the control loop reads the config out and generates a j8a config object in yml. this will be deployed to the kube cluster as its own configmap object. (We will probably need our own namespace) r i
+5. ingress-j8a then tells the kube api server about j8a-config as a configMap
+6. kube api server deploys this resource into the cluster into our own namespace. 
+7. ingress-j8a then tell kube api server to deploy the latest docker image of j8a into the cluster. 
+8. kube api-server creates the deployment. Several problems need to be solved here. 
+   * It will need to be configured from the configmap. 
+   * it needs to run on some kind of nodeport config on each node? listening on the same port on every node. 
+   * we need it's external IP address
+   * we may need to create an external NLB for it? (how would we even know about this?)
+
 
 # Contributions
 
