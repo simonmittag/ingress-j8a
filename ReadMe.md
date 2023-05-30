@@ -6,9 +6,15 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/simonmittag/ingress-j8a)](https://img.shields.io/github/go-mod/go-version/simonmittag/ingress-j8a)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+# Why?
+A kube ingress controller for j8a
+
+
 # What?
-ingress-j8a is heavily under construction and there is currently no public release. Do check the issues section for 
-current progress
+ingress-j8a is heavily under construction and there is currently no public release. The first draft of technical design
+borrows from ingress-nginx
+
+![](art/ingress-j8a.png)
 
 # Contributions
 

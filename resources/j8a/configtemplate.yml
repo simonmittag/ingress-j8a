@@ -1,0 +1,25 @@
+---
+connection:
+  downstream:
+    readTimeoutSeconds: 3
+    roundTripTimeoutSeconds: 120
+    idleTimeoutSeconds: 30
+    http:
+      port: 80
+    maxBodyBytes: 1048576
+  upstream:
+    socketTimeoutSeconds: 3
+    readTimeoutSeconds: 120
+    idleTimeoutSeconds: 10
+    tlsInsecureSkipVerify: true
+
+routes:
+  - path: /
+    resource: myupstream
+
+resources:
+  myupstream:
+    - url:
+        scheme: http
+        host: {{ .SERVICE }}
+        port: 80

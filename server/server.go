@@ -12,6 +12,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	"k8s.io/klog/v2"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -131,6 +132,7 @@ func (s *Server) printObjects() {
 	fmt.Printf("There are %d services in cluster running kube v%v.%v\n", len(sv.Items), s.Kube.VersionMajor, s.Kube.VersionMinor)
 	fmt.Printf("There are %d secrets in cluster running kube v%v.%v\n", len(sl.Items), s.Kube.VersionMajor, s.Kube.VersionMinor)
 	fmt.Printf("There are %d ingress in cluster running kube v%v.%v\n", len(il.Items), s.Kube.VersionMajor, s.Kube.VersionMinor)
+	klog.Info("accessed config objects")
 	time.Sleep(time.Second * 7)
 }
 
