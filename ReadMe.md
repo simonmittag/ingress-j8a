@@ -7,20 +7,24 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 # Why?
-A kube ingress controller for [j8a](https://github.com/simonmittag/j8a).
-
+This document outlines the design of an Ingress Controller for J8a[j8a](https://github.com/simonmittag/j8a) inside a 
+Kubernetes cluster. The Ingress Controller is responsible for managing incoming network traffic to services within the 
+cluster, providing an entry point for external clients to access the cluster's applications. The controller utilizes the 
+Ingress resource, along with other Kubernetes objects such as Service, ConfigMap, and Secret, to facilitate routing 
+and load balancing of network traffic.
 
 # What?
-ingress-j8a is a kubernetes ingress controller, exposing ports 80, 443 on a j8a ingress-controller resource
-inside the cluster. Its role is to farm traffic to kubernetes services and their associated pods. 
-The project is in alpha phase and there is no release.
-
-![](art/ingress-j8a.png)
+ingress-j8a is a kubernetes ingress controller pod, exposing ports 80, 443 to the internet. It generates the configuration
+objects for j8a a proxy server, keeps those configurations updated and manages instances of j8a within the cluster. 
 
 ## Design Goals
-* Zero downtime for j8a during updates to ingress resources.
-* Redundancy for J8a with multiple instances and a load balancing mechanism
+* Zero downtime deployments for j8a during updates to all cluster resources.
+* Redundancy for j8a with multiple proxy server instances and a load balancing mechanism
 * intelligent defaults for j8a for proxy server params the kubernetes ingress resource does not readily expose.
+
+![](art/ingress-j8a.png)
+* j8a-ingress-pod consumes ingress resources from all namespaces for the ingressClass j8a
+* it consumes the actual ingressclass resource that specifies the controller class itself.
 
 
 
