@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 # Why?
-This document outlines the design of an Ingress Controller for J8a[j8a](https://github.com/simonmittag/j8a) inside a 
+This document outlines the design of an Ingress Controller for [j8a](https://github.com/simonmittag/j8a) inside a 
 Kubernetes cluster. The Ingress Controller is responsible for managing incoming network traffic to services within the 
 cluster, providing an entry point for external clients to access the cluster's applications. The controller utilizes the 
 Ingress resource, along with other Kubernetes objects such as Service, ConfigMap, and Secret, to facilitate routing 
