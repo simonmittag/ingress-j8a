@@ -14,7 +14,7 @@ Ingress resource, along with other Kubernetes objects such as Service, ConfigMap
 and load balancing of network traffic.
 
 # What?
-`ingress-j8a` is a kubernetes ingress controller pod, exposing ports `80`, `443` of the cluster to the internet. It generates the configuration
+`ingress-j8a` is a kubernetes ingress controller pod, exposing ports 80, 443 of the cluster to the internet. It generates the configuration
 objects for j8a a proxy server, keeps those configurations updated and manages instances of j8a within the cluster. 
 
 ![](art/ingress-j8a.png)
@@ -41,7 +41,7 @@ then updating J8a's config and it's live traffic routes.
 5. `ingress-j8a` then deploys the configMap as a resource to the kube api server and keeps it updated for subsequent changes.
 6. kube api server deploys this resource into the cluster and maintains it there. 
 7. `ingress-j8a` then tells kube api server to deploy the latest docker image of j8a into the cluster using this config. It updates the current deployment for j8a and deploys new pods into that deploying using a rolling configuration update. 
-8. kube api-server creates the deployment. Several problems need to be solved here. 
+8. 🚧 kube api-server creates the deployment. Several problems need to be solved here. 
    * It will need to be configured from the configmap. 
    * it needs to run on some kind of nodeport config on each node? listening on the same port on every node. 
    * we need it's external IP address
