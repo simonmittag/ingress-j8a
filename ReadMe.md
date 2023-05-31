@@ -15,13 +15,15 @@ and load balancing of network traffic.
 
 # 🚧 What? 🚧
 `ingress-j8a` is a kubernetes ingress controller pod, exposing ports 80, 443 of the cluster to the internet. It generates the configuration
-objects for j8a a proxy server, keeps those configurations updated and manages instances of j8a within the cluster. 
+objects for j8a, keeps those configurations updated and manages instances of j8a within the cluster. 
 
 ![](art/ingress-j8a.png)
 * ingress-j8a consumes ingress resources from all namespaces for the ingressClass j8a
 * ingress-j8a consumes the actual ingressClass resource that specifies the controller class itself and reconfigures the controller pods accordingly.
 * ingress-j8a deploys instances of j8a into the cluster by talking to the kubernetes API server. It creates a deployment keeping multiple copies of j8a alive.
 * ingress-j8a updates deployments of j8a instances with new configuration objects as env variables. Since this cannot be done at runtime, it changes the deployment of j8a-ingress-controller-pod and rolls out new pods using a rolling update, so there is always live pods available. old pods are shut down after new ones have successfully deployed.
+* j8a exposes ports 80 and 443 on known ip addresses to the internet
+* 🚧 j8a routes traffic to pods that are mapped by translation of `service` urls to actual pods inside the cluster. 
 
 # 🚧 How? 🚧
 ## Design Goals
@@ -42,10 +44,10 @@ then updating J8a's config and it's live traffic routes.
 6. kube api server deploys this resource into the cluster and maintains it there. 
 7. `ingress-j8a` then tells kube api server to deploy the latest docker image of j8a into the cluster using this config. It updates the current deployment for j8a and deploys new pods into that deploying using a rolling configuration update. 
 8. 🚧 kube api-server creates the deployment. Several problems need to be solved here. 
-   * It will need to be configured from the configmap. 
-   * it needs to run on some kind of nodeport config on each node? listening on the same port on every node. 
-   * we need it's external IP address
-   * we may need to create an external NLB for it? (how would we even know about this?)
+   * 🚧 It will need to be configured from the configmap. 
+   * 🚧 it needs to run on some kind of nodeport config on each node? listening on the same port on every node. 
+   * 🚧 we need it's external IP address
+   * 🚧 we may need to create an external NLB for it? (how would we even know about this?)
 
 
 # Contributions
