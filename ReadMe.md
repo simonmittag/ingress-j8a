@@ -17,18 +17,17 @@ and load balancing of network traffic.
 ingress-j8a is a kubernetes ingress controller pod, exposing ports 80, 443 to the internet. It generates the configuration
 objects for j8a a proxy server, keeps those configurations updated and manages instances of j8a within the cluster. 
 
+![](art/ingress-j8a.png)
+* j8a-ingress-pod consumes ingress resources from all namespaces for the ingressClass j8a
+* it consumes the actual ingressclass resource that specifies the controller class itself.
+
+# How
 ## Design Goals
 * Zero downtime deployments for j8a during updates to all cluster resources.
 * Redundancy for j8a with multiple proxy server instances and a load balancing mechanism
 * intelligent defaults for j8a for proxy server params the kubernetes ingress resource does not readily expose.
 
-![](art/ingress-j8a.png)
-* j8a-ingress-pod consumes ingress resources from all namespaces for the ingressClass j8a
-* it consumes the actual ingressclass resource that specifies the controller class itself.
-
-
-
-## How it works 
+## Resource Lifecycle
 The basic mechanics of monitoring kubernetes for configuration changes,
 then updating J8a's config and it's live traffic routes.
 
