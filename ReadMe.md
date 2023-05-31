@@ -17,7 +17,7 @@ The project is in alpha phase and there is no release.
 
 ![](art/ingress-j8a.png)
 
-## Goals
+## Design Goals
 * Zero downtime for j8a during updates to ingress resources.
 * Redundancy for J8a with multiple instances and a load balancing mechanism
 * intelligent defaults for j8a for proxy server params the kubernetes ingress resource does not readily expose.
