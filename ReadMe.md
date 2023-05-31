@@ -14,16 +14,16 @@ Ingress resource, along with other Kubernetes objects such as Service, ConfigMap
 and load balancing of network traffic.
 
 # What?
-ingress-j8a is a kubernetes ingress controller pod, exposing ports 80, 443 to the internet. It generates the configuration
+`ingress-j8a` is a kubernetes ingress controller pod, exposing ports `80`, `443` of the cluster to the internet. It generates the configuration
 objects for j8a a proxy server, keeps those configurations updated and manages instances of j8a within the cluster. 
 
 ![](art/ingress-j8a.png)
-* j8a-ingress-pod consumes ingress resources from all namespaces for the ingressClass j8a
-* j8a-ingress-pod consumes the actual ingressClass resource that specifies the controller class itself and reconfigures the controller pods accordingly.
-* j8a-ingress-pod deploys instances of j8a into the cluster by talking to the kubernetes API server. It creates a deployment keeping multiple copies of j8a alive.
-* j8a-ingress-pod updates deployments of j8a instances with new configuration objects as env variables. Since this cannot be done at runtime, it changes the deployment of j8a-ingress-controller-pod and rolls out new pods using a rolling update, so there is always live pods available. old pods are shut down after new ones have successfully deployed.
+* ingress-j8a consumes ingress resources from all namespaces for the ingressClass j8a
+* ingress-j8a consumes the actual ingressClass resource that specifies the controller class itself and reconfigures the controller pods accordingly.
+* ingress-j8a deploys instances of j8a into the cluster by talking to the kubernetes API server. It creates a deployment keeping multiple copies of j8a alive.
+* ingress-j8a updates deployments of j8a instances with new configuration objects as env variables. Since this cannot be done at runtime, it changes the deployment of j8a-ingress-controller-pod and rolls out new pods using a rolling update, so there is always live pods available. old pods are shut down after new ones have successfully deployed.
 
-# How
+# How?
 ## Design Goals
 * Zero downtime deployments for j8a during updates to all cluster resources.
 * Redundancy for j8a with multiple proxy server instances and a load balancing mechanism
@@ -34,13 +34,13 @@ The basic mechanics of monitoring kubernetes for configuration changes,
 then updating J8a's config and it's live traffic routes.
 
 ![](art/ingress-j8a-mechanics.png)
-1. The user deploys ingress resources to the cluster, or updates them. This also needs to cater for configMap and secrets updates
-2. A cache that runs inside ingress-j8a monitors for updates to kube resources in all namespaces. it versions the config.
-3. the control loop that continuously waits for config changes is notified.
-4. the control loop reads the config out and generates a j8a config object in yml. this will be deployed to the kube cluster as its own configmap object. (We will probably need our own namespace) r i
-5. ingress-j8a then tells the kube api server about j8a-config as a configMap
-6. kube api server deploys this resource into the cluster into our own namespace. 
-7. ingress-j8a then tell kube api server to deploy the latest docker image of j8a into the cluster. 
+1. The user deploys ingress resources to the cluster, or updates them. This is similar for dependent resources such as configMap and secrets that are used by the ingress resources. The user is allowed to deploy these at any time.
+2. A cache that runs inside `ingress-j8a` monitors for updates to kube resources in all namespaces. It pulls down the latest resources, caches them, then versions its own config.
+3. The control loop inside `ingress-j8a` that continuously waits for config changes is notified (this idea is borrowed from ingress-nginx).
+4. The control loop reads the versioned, cached config out and generates a j8a config object in yml format. This is based on a template of the j8a config, filled in using go {{template}} variables. The result will be deployed to the kube cluster as its own configmap object in the j8a namespace (not currently on the diagram).
+5. `ingress-j8a` then deploys the configMap as a resource to the kube api server and keeps it updated for subsequent changes.
+6. kube api server deploys this resource into the cluster and maintains it there. 
+7. `ingress-j8a` then tells kube api server to deploy the latest docker image of j8a into the cluster using this config. It updates the current deployment for j8a and deploys new pods into that deploying using a rolling configuration update. 
 8. kube api-server creates the deployment. Several problems need to be solved here. 
    * It will need to be configured from the configmap. 
    * it needs to run on some kind of nodeport config on each node? listening on the same port on every node. 
