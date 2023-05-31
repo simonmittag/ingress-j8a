@@ -22,8 +22,8 @@ The project is currently under construction and there is currently no public rel
 
 
 
-## Design doc
-This design doc shows the basic mechanics of monitoring kubernetes for configuration changes,
+## How it works 
+The basic mechanics of monitoring kubernetes for configuration changes,
 then updating J8a's config and it's live traffic routes.
 
 ![](art/ingress-j8a.png)
