@@ -13,12 +13,14 @@ A kube ingress controller for [j8a](https://github.com/simonmittag/j8a).
 # What?
 ingress-j8a is a kubernetes ingress controller, exposing ports 80, 443 on a j8a ingress-controller resource
 inside the cluster. Its role is to farm traffic to kubernetes services and their associated pods. 
-The project is currently under construction and there is currently no public release. 
+The project is currently under construction and there is currently no public release.
+
+![](art/ingress-j8a.png)
 
 ## Goals
-* Zero downtime for j8a during updates to ingress resources.
-* Redundancy for J8a with multiple instances and a load balancing mechanism
-* intelligent defaults for j8a for proxy server params the kubernetes ingress resource does not readily expose.
+* zero downtime during updates to ingress resources.
+* redundant ingress controllers using network load balancing.
+* intelligent defaults for proxy server params the kubernetes ingress resource does not expose.
 
 
 
@@ -26,7 +28,7 @@ The project is currently under construction and there is currently no public rel
 The basic mechanics of monitoring kubernetes for configuration changes,
 then updating J8a's config and it's live traffic routes.
 
-![](art/ingress-j8a.png)
+![](art/ingress-j8a-mechanics.png)
 1. The user deploys ingress resources to the cluster, or updates them. This also needs to cater for configMap and secrets updates
 2. A cache that runs inside ingress-j8a monitors for updates to kube resources in all namespaces. it versions the config.
 3. the control loop that continuously waits for config changes is notified.
