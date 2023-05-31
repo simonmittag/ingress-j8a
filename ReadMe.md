@@ -13,7 +13,7 @@ A kube ingress controller for [j8a](https://github.com/simonmittag/j8a).
 # What?
 ingress-j8a is a kubernetes ingress controller, exposing ports 80, 443 on a j8a ingress-controller resource
 inside the cluster. Its role is to farm traffic to kubernetes services and their associated pods. 
-The is currently under construction and there is no release.
+The project is in alpha phase and there is no release.
 
 ![](art/ingress-j8a.png)
 
