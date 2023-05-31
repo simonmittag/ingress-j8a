@@ -13,7 +13,7 @@ cluster, providing an entry point for external clients to access the cluster's a
 Ingress resource, along with other Kubernetes objects such as Service, ConfigMap, and Secret, to facilitate routing 
 and load balancing of network traffic.
 
-# What?
+# 🚧 What? 🚧
 `ingress-j8a` is a kubernetes ingress controller pod, exposing ports 80, 443 of the cluster to the internet. It generates the configuration
 objects for j8a a proxy server, keeps those configurations updated and manages instances of j8a within the cluster. 
 
@@ -23,7 +23,7 @@ objects for j8a a proxy server, keeps those configurations updated and manages i
 * ingress-j8a deploys instances of j8a into the cluster by talking to the kubernetes API server. It creates a deployment keeping multiple copies of j8a alive.
 * ingress-j8a updates deployments of j8a instances with new configuration objects as env variables. Since this cannot be done at runtime, it changes the deployment of j8a-ingress-controller-pod and rolls out new pods using a rolling update, so there is always live pods available. old pods are shut down after new ones have successfully deployed.
 
-# How?
+# 🚧 How? 🚧
 ## Design Goals
 * Zero downtime deployments for j8a during updates to all cluster resources.
 * Redundancy for j8a with multiple proxy server instances and a load balancing mechanism
