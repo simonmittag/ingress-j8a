@@ -18,9 +18,9 @@ The project is currently under construction and there is currently no public rel
 ![](art/ingress-j8a.png)
 
 ## Goals
-* zero downtime during updates to ingress resources.
-* redundant ingress controllers using network load balancing.
-* intelligent defaults for proxy server params the kubernetes ingress resource does not expose.
+* Zero downtime for j8a during updates to ingress resources.
+* Redundancy for J8a with multiple instances and a load balancing mechanism
+* intelligent defaults for j8a for proxy server params the kubernetes ingress resource does not readily expose.
 
 
 
