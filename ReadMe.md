@@ -19,8 +19,10 @@ objects for j8a a proxy server, keeps those configurations updated and manages i
 
 ![](art/ingress-j8a.png)
 * j8a-ingress-pod consumes ingress resources from all namespaces for the ingressClass j8a
-* the j8a-ingress-pod consumes the actual ingressclass resource that specifies the controller class itself.
-* the j8a-ingress-pod deploys instances of j8a into the cluster by talking to the kubernetes API server. It creates a deployment keeping multiple copies of j8a around.
+* j8a-ingress-pod consumes the actual ingressClass resource that specifies the controller class itself and reconfigures the controller pods accordingly.
+* j8a-ingress-pod deploys instances of j8a into the cluster by talking to the kubernetes API server. It creates a deployment keeping multiple copies of j8a alive.
+* j8a-ingress-pod updates deployments of j8a instances with new configuration objects as env variables. Since this cannot be done at runtime, it changes the deployment of j8a-ingress-controller-pod and rolls out new pods using a rolling update, so there is always live pods available. old pods are shut down after new ones have successfully deployed.
+
 # How
 ## Design Goals
 * Zero downtime deployments for j8a during updates to all cluster resources.
