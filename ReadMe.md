@@ -46,8 +46,8 @@ then updating J8a's config and it's live traffic routes.
 8. 🚧 kube api-server creates the deployment. Several problems need to be solved here. 
    * 🚧 It will need to be configured from the configmap. 
    * 🚧 it needs to run on some kind of nodeport config on each node? listening on the same port on every node. 
-   * 🚧 we need it's external IP address
-   * 🚧 we may need to create an external NLB for it? (how would we even know about this?)
+   * 🚧 we need it's external IP address to report it to he kubernetes user on the ingress resource?
+   * 🚧 we may need to create an external NLB for it? (how would we even know about this? May have to happen outside cluster)
 
 
 # Contributions
