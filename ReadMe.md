@@ -29,7 +29,7 @@ objects for j8a, keeps those configurations updated and manages instances of j8a
 ## Design Goals
 * Zero downtime deployments for j8a during updates to all cluster resources.
 * Redundancy for j8a with multiple proxy server instances and a load balancing mechanism
-* intelligent defaults for j8a for proxy server params the kubernetes ingress resource does not readily expose.
+* Intelligent defaults for j8a for proxy server params the kubernetes ingress resource does not readily expose.
 
 ## Resource Lifecycle
 The basic mechanics of monitoring kubernetes for configuration changes,
