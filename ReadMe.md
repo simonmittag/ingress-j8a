@@ -14,7 +14,7 @@ Ingress resource, along with other Kubernetes objects such as Service, ConfigMap
 and load balancing of network traffic.
 
 # 🚧 What? 🚧
-`ingress-j8a` is a kubernetes ingress controller pod, exposing ports 80, 443 of the cluster to the internet. It generates the configuration
+`ingress-j8a` is a kubernetes ingress controller pod, exposing ports 80, 443 of managed j8a pods, making the cluster accessible to the internet. It generates the configuration
 objects for j8a, keeps those configurations updated and manages instances of j8a within the cluster. 
 
 ![](art/ingress-j8a.png)
