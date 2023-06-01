@@ -22,7 +22,7 @@ objects for j8a, keeps those configurations updated and manages instances of j8a
 * 🚧 `ingress-j8a` consumes the actual ingressClass resource that specifies the controller class itself and reconfigures the controller pods accordingly.
 * `ingress-j8a` deploys instances of j8a into the cluster by talking to the kubernetes API server. It creates a deployment keeping multiple copies of j8a alive.
 * `ingress-j8a` updates deployments of j8a instances with new configuration objects as env variables. Since this cannot be done at runtime, it changes the deployment of j8a-pod and rolls out new pods in a way that guarantees there are always live pods available. 
-* j8a exposes ports 80 and 443 on known ip addresses to the internet
+* 🚧 j8a itself exposes ports 80 and 443 on known ip addresses to the internet. It is deployed as a Nodeport service
 * 🚧 j8a routes traffic to pods that are mapped by translation of `service` urls to actual pods inside the cluster. 
 
 # 🚧 How? 🚧
