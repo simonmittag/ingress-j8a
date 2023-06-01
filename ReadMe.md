@@ -37,7 +37,7 @@ then updating J8a's config and it's live traffic routes.
 
 ![](art/ingress-j8a-mechanics.png)
 1. The user deploys ingress resources to the cluster, or updates them. This is similar for dependent resources such as configMap and secrets that are used by the ingress resources. The user is allowed to deploy these at any time.
-2. A cache that runs inside `ingress-j8a` monitors for updates to kube resources in all namespaces. It pulls down the latest resources, caches them, then versions its own config. This mechanism has an idle wait safeguard to protect against deploying too frequently.
+2. A cache that runs inside `ingress-j8a` monitors for updates to kube resources in all namespaces. It pulls down the latest resources, caches them, then versions its own config. This mechanism has an idle wait safeguard to protect against versioning too frequently.
 3. The control loop inside `ingress-j8a` that continuously waits for config changes is notified (this idea is borrowed from ingress-nginx).
 4. The control loop reads the versioned, cached config out and generates a j8a config object in yml format. This is based on a template of the j8a config, filled in using go {{template}} variables. The result will be deployed to the kube cluster as its own configmap object in the j8a namespace (not currently on the diagram).
 5. `ingress-j8a` then deploys the configMap as a resource to the kube api server and keeps it updated for subsequent changes.
