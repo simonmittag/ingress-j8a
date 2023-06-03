@@ -17,13 +17,16 @@ and load balancing of network traffic.
 `ingress-j8a` is a kubernetes ingress controller pod, exposing ports 80, 443 of managed j8a pods, making the cluster accessible to the internet. It generates the configuration
 objects for j8a, keeps those configurations updated and manages instances of j8a within the cluster. 
 
-![](art/ingress-j8a.png)
+![](art/ingress-j8a.svg)
 * `ingress-j8a` consumes `ingress` resources from all namespaces for the `ingressClass` j8a
-* 🚧 `ingress-j8a` consumes the actual ingressClass resource that specifies the controller class itself and reconfigures the controller pods accordingly.
-* `ingress-j8a` deploys instances of j8a into the cluster by talking to the kubernetes API server. It creates a deployment keeping multiple copies of j8a alive.
-* `ingress-j8a` updates deployments of j8a instances with new configuration objects as env variables. Since this cannot be done at runtime, it changes the deployment of j8a-pod and rolls out new pods in a way that guarantees there are always live pods available. 
-* 🚧 j8a itself exposes ports 80 and 443 on known ip addresses to the internet. It is deployed as a Nodeport service
-* 🚧 j8a routes traffic to pods that are mapped by translation of `service` urls to actual pods inside the cluster. 
+* 🚧 `ingress-j8a` consumes the actual ingressClass resource that specifies the controller class itself and reconfigures the controller pods accordingly. 
+  * Can number of replicas be controlled this way?
+* `ingress-j8a` deploys a `deployment` of j8a into the cluster by talking to the kubernetes API server. 
+  * Pods use off-the-shelf j8a images from dockerhub.
+  * Proxy config is passed via env.
+  * When proxy config needs to change, the deployment is updated with the contents of the env variable changing. 
+* j8a `pod` itself exposes ports 80 and 443 on it's clusterIp. It is accessed externally via the outer load balancer.
+* j8a routes traffic to pods that are mapped by translation of `service` urls to actual pods inside the cluster. 
 
 # 🚧 How? 🚧
 ## Design Goals
