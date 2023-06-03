@@ -24,7 +24,9 @@ objects for j8a, keeps those configurations updated and manages instances of j8a
 * `ingress-j8a` deploys a `deployment` of j8a into the cluster by talking to the kubernetes API server. 
   * Pods use off-the-shelf j8a images from dockerhub.
   * Proxy config is passed via env.
-  * When proxy config needs to change, the deployment is updated with the contents of the env variable changing. 
+  * When proxy config needs to change, the deployment is updated with the contents of the env variable changing.
+* `ingress-j8a` allocates a `service` of type loadbalancer that forwards traffic to the proxy server pods.
+* `ingress-j8a` talks to kuber apiserver via the golang kubernetes client and authenticates internal to the cluster with a `serviceaccount` that is deployed together with the ingresscontroller. The `serviceaccount` has an associated `clusterrole` and `clusterrolebinding` to give it minimum privileges required to access cluster-wide `ingress` `ingressclass` `service` `configMap` and `secret` resources required.
 * j8a `pod` itself exposes ports 80 and 443 on it's clusterIp (depends on config from ingress.yml). It is accessed externally via the outer load balancer.
 * j8a routes traffic to pods that are mapped by translation of `service` urls to actual pods inside the cluster. 
 
