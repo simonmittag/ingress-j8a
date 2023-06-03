@@ -25,7 +25,7 @@ objects for j8a, keeps those configurations updated and manages instances of j8a
   * Pods use off-the-shelf j8a images from dockerhub.
   * Proxy config is passed via env.
   * When proxy config needs to change, the deployment is updated with the contents of the env variable changing. 
-* j8a `pod` itself exposes ports 80 and 443 on it's clusterIp. It is accessed externally via the outer load balancer.
+* j8a `pod` itself exposes ports 80 and 443 on it's clusterIp (depends on config from ingress.yml). It is accessed externally via the outer load balancer.
 * j8a routes traffic to pods that are mapped by translation of `service` urls to actual pods inside the cluster. 
 
 # 🚧 How? 🚧
