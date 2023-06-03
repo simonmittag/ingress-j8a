@@ -22,7 +22,7 @@ objects for j8a, keeps those configurations updated and manages instances of j8a
 * `ingress-j8a` consumes cluster users `ingress` resources from all namespaces for the `ingressClass` j8a
 * 🚧 `ingress-j8a` consumes the actual ingressClass resource that specifies the controller class itself and reconfigures the controller pods accordingly. 
   * Can number of replicas be controlled this way?
-* `ingress-j8a` deploys a `deployment` of j8a into the cluster by talking to the kubernetes API server. 
+* `ingress-j8a` creates a `deployment` of j8a into the cluster by talking to the kubernetes API server. 
   * Pods use off-the-shelf j8a images from dockerhub.
   * Proxy config is passed via env.
   * When proxy config needs to change, the deployment is updated with the contents of the env variable.
