@@ -18,15 +18,15 @@ and load balancing of network traffic.
 objects for j8a, keeps those configurations updated and manages instances of j8a within the cluster. 
 
 ![](art/ingress-j8a.png)
+* `ingress-j8a` talks to kube apiserver via the golang kubernetes client and authenticates internal to the cluster with a `serviceaccount` that is deployed together with the ingresscontroller. The `serviceaccount` has an associated `clusterrole` and `clusterrolebinding` to give it minimum privileges required to access cluster-wide `ingress` `ingressclass` `service` `configMap` and `secret` resources required.
 * `ingress-j8a` consumes `ingress` resources from all namespaces for the `ingressClass` j8a
 * 🚧 `ingress-j8a` consumes the actual ingressClass resource that specifies the controller class itself and reconfigures the controller pods accordingly. 
   * Can number of replicas be controlled this way?
 * `ingress-j8a` deploys a `deployment` of j8a into the cluster by talking to the kubernetes API server. 
   * Pods use off-the-shelf j8a images from dockerhub.
   * Proxy config is passed via env.
-  * When proxy config needs to change, the deployment is updated with the contents of the env variable changing.
+  * When proxy config needs to change, the deployment is updated with the contents of the env variable.
 * `ingress-j8a` allocates a `service` of type loadbalancer that forwards traffic to the proxy server pods.
-* `ingress-j8a` talks to kuber apiserver via the golang kubernetes client and authenticates internal to the cluster with a `serviceaccount` that is deployed together with the ingresscontroller. The `serviceaccount` has an associated `clusterrole` and `clusterrolebinding` to give it minimum privileges required to access cluster-wide `ingress` `ingressclass` `service` `configMap` and `secret` resources required.
 * j8a `pod` itself exposes ports 80 and 443 on it's clusterIp (depends on config from ingress.yml). It is accessed externally via the outer load balancer.
 * j8a routes traffic to pods that are mapped by translation of `service` urls to actual pods inside the cluster. 
 
