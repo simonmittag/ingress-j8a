@@ -18,7 +18,7 @@ and load balancing of network traffic.
 objects for j8a, keeps those configurations updated and manages instances of j8a within the cluster. 
 
 ![](art/ingress-j8a.png)
-* `ingress-j8a` talks to kube apiserver via the golang kubernetes client and authenticates internal to the cluster with a `serviceaccount` that is deployed together with the ingresscontroller. The `serviceaccount` has an associated `clusterrole` and `clusterrolebinding` to give it minimum privileges required to access cluster-wide `ingress` `ingressclass` `service` `configMap` and `secret` resources required.
+* `ingress-j8a` talks to kube apiserver via the golang kubernetes client and authenticates internal to the cluster with `j8a-serviceaccount` that is deployed together with the ingresscontroller. The `j8a-serviceaccount` has an associated `j8a-clusterrole` and `j8a-clusterrolebinding` to give it minimum privileges required to access cluster-wide `ingress` `ingressclass` `service` `configMap` and `secret` resources required.
 * `ingress-j8a` consumes `ingress` resources from all namespaces for the `ingressClass` j8a
 * 🚧 `ingress-j8a` consumes the actual ingressClass resource that specifies the controller class itself and reconfigures the controller pods accordingly. 
   * Can number of replicas be controlled this way?
