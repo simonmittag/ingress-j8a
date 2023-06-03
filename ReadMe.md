@@ -8,9 +8,9 @@
 
 # Why?
 This document outlines the design of an Ingress Controller for [j8a](https://github.com/simonmittag/j8a) inside a 
-Kubernetes cluster. The Ingress Controller is responsible for managing incoming network traffic to services within the 
+Kubernetes cluster. The Ingress Controller is responsible for managing incoming network traffic to `service` objects within the 
 cluster, providing a highly available, j8a based entry point for external clients to access the cluster's applications. The controller utilizes the 
-Ingress resource, along with other Kubernetes objects such as Service, ConfigMap, and Secret, to facilitate routing 
+`ingress` resource, along with other Kubernetes objects such as `service`, `configMap`, and `secret`, to facilitate routing 
 and load balancing of network traffic.
 
 # What?
