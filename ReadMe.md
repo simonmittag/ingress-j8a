@@ -17,7 +17,7 @@ and load balancing of network traffic.
 `ingress-j8a` is a kubernetes ingress controller pod, exposing ports 80, 443 of managed j8a pods, making the cluster accessible to the internet. It generates the configuration
 objects for j8a, keeps those configurations updated and manages instances of j8a within the cluster. 
 
-![](art/ingress-j8a.svg)
+![](art/ingress-j8a.png)
 * `ingress-j8a` consumes `ingress` resources from all namespaces for the `ingressClass` j8a
 * 🚧 `ingress-j8a` consumes the actual ingressClass resource that specifies the controller class itself and reconfigures the controller pods accordingly. 
   * Can number of replicas be controlled this way?
