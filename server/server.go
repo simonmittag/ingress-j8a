@@ -13,6 +13,8 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	"k8s.io/klog/v2"
+	"os"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -102,6 +104,7 @@ func (s *Server) authenticateToKubeExternal() error {
 	// create the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err == nil {
+		klog.Infoln("authenticated external to cluster in development mode")
 		s.Kube.Client = clientset
 		return nil
 	} else {
@@ -120,6 +123,7 @@ func (s *Server) authenticateToKubeInternal() error {
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err == nil {
+		klog.Info("authenticated inside cluster")
 		s.Kube.Client = clientset
 		return nil
 	} else {
@@ -139,10 +143,10 @@ func (s *Server) checkKubeVersion() error {
 	if s.Kube.VersionMajor < KubeVersionMinimum.VersionMajor ||
 		s.Kube.VersionMinor < KubeVersionMinimum.VersionMinor {
 		msg := fmt.Sprintf("detected unsupported Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor)
-		fmt.Println(msg)
+		klog.Fatal(msg)
 		return errors.New(msg)
 	} else {
-		fmt.Printf("\ndetected Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor)
+		klog.Infof("detected Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor)
 		return nil
 	}
 }
@@ -150,28 +154,28 @@ func (s *Server) checkKubeVersion() error {
 func (s *Server) checkPermissions() error {
 	_, e1 := s.fetchConfigMaps()
 	if e1 != nil {
-		fmt.Printf("\ninsufficient privileges to access configMaps")
+		klog.Fatalf("insufficient privileges to access configMaps")
 		return e1
 	}
 
 	_, e2 := s.fetchServices()
 	if e2 != nil {
-		fmt.Printf("\ninsufficient privileges to access services")
+		klog.Fatalf("insufficient privileges to access services")
 		return e2
 	}
 
 	_, e3 := s.fetchSecrets()
 	if e3 != nil {
-		fmt.Printf("insufficient privileges to secrets")
+		klog.Fatalf("insufficient privileges to secrets")
 		return e3
 	}
 
 	_, e4 := s.fetchIngress()
 	if e4 != nil {
-		fmt.Printf("\ninsufficient privileges to access ingress")
+		klog.Fatalf("insufficient privileges to access ingress")
 		return e4
 	} else {
-		fmt.Printf("\nsuccessfully checked privileges to access cluster configuration")
+		klog.Infof("successfully checked privileges to access cluster configuration")
 		return nil
 	}
 }
@@ -181,10 +185,10 @@ func (s *Server) logObjects() {
 	sv, _ := s.fetchServices()
 	sl, _ := s.fetchSecrets()
 	il, _ := s.fetchIngress()
-	fmt.Printf("\ndetected %d config maps in cluster", len(cm.Items))
-	fmt.Printf("\ndetected %d services in cluster", len(sv.Items))
-	fmt.Printf("\ndetected %d secrets in cluster", len(sl.Items))
-	fmt.Printf("\ndetected %d ingress in cluster", len(il.Items))
+	klog.Infof("detected %d config maps in cluster", len(cm.Items))
+	klog.Infof("detected %d services in cluster", len(sv.Items))
+	klog.Infof("detected %d secrets in cluster", len(sl.Items))
+	klog.Infof("detected %d ingress in cluster", len(il.Items))
 	//klog.Info("accessed config objects")
 	time.Sleep(time.Second * 7)
 }
@@ -214,5 +218,6 @@ func (s *Server) fetchIngress() (*nv1.IngressList, error) {
 }
 
 func (s *Server) panic(e error) {
-	fmt.Printf("error: %v", e)
+	klog.Fatalf("unhandled error, system needs to shut down: %v", e)
+	os.Exit(-1)
 }
