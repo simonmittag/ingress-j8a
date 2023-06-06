@@ -138,11 +138,11 @@ func (s *Server) checkKubeVersion() error {
 	s.detectKubeVersion()
 	if s.Kube.VersionMajor < KubeVersionMinimum.VersionMajor ||
 		s.Kube.VersionMinor < KubeVersionMinimum.VersionMinor {
-		msg := fmt.Sprintf("Detected unsupported Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor)
+		msg := fmt.Sprintf("detected unsupported Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor)
 		fmt.Println(msg)
 		return errors.New(msg)
 	} else {
-		fmt.Printf("\nDetected Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor)
+		fmt.Printf("\ndetected Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor)
 		return nil
 	}
 }
