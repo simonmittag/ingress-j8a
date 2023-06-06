@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	v1 "k8s.io/api/core/v1"
@@ -12,13 +13,17 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
-	"k8s.io/klog/v2"
 	"path/filepath"
 	"strconv"
 	"time"
 )
 
 const Version = "v0.1"
+
+var KubeVersionMinimum = Kube{
+	VersionMajor: 1,
+	VersionMinor: 22,
+}
 
 type Server struct {
 	Version string
@@ -49,11 +54,17 @@ func (s *Server) Bootstrap() {
 	if e != nil {
 		s.panic(e)
 	}
-
-	s.detectKubeVersion()
+	e = s.checkKubeVersion()
+	if e != nil {
+		s.panic(e)
+	}
+	e = s.checkPermissions()
+	if e != nil {
+		s.panic(e)
+	}
 
 	for {
-		s.printObjects()
+		s.logObjects()
 	}
 }
 
@@ -123,45 +134,83 @@ func (s *Server) detectKubeVersion() {
 	s.Kube.VersionMinor, _ = strconv.Atoi(vi.Minor)
 }
 
-func (s *Server) printObjects() {
-	cm := s.fetchConfigMaps()
-	sv := s.fetchServices()
-	sl := s.fetchSecrets()
-	il := s.fetchIngress()
-	fmt.Printf("There are %d config maps in cluster running kube v%v.%v\n", len(cm.Items), s.Kube.VersionMajor, s.Kube.VersionMinor)
-	fmt.Printf("There are %d services in cluster running kube v%v.%v\n", len(sv.Items), s.Kube.VersionMajor, s.Kube.VersionMinor)
-	fmt.Printf("There are %d secrets in cluster running kube v%v.%v\n", len(sl.Items), s.Kube.VersionMajor, s.Kube.VersionMinor)
-	fmt.Printf("There are %d ingress in cluster running kube v%v.%v\n", len(il.Items), s.Kube.VersionMajor, s.Kube.VersionMinor)
-	klog.Info("accessed config objects")
+func (s *Server) checkKubeVersion() error {
+	s.detectKubeVersion()
+	if s.Kube.VersionMajor < KubeVersionMinimum.VersionMajor ||
+		s.Kube.VersionMinor < KubeVersionMinimum.VersionMinor {
+		msg := fmt.Sprintf("Detected unsupported Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor)
+		fmt.Println(msg)
+		return errors.New(msg)
+	} else {
+		fmt.Printf("\nDetected Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor)
+		return nil
+	}
+}
+
+func (s *Server) checkPermissions() error {
+	_, e1 := s.fetchConfigMaps()
+	if e1 != nil {
+		fmt.Printf("\ninsufficient privileges to access configMaps")
+		return e1
+	}
+
+	_, e2 := s.fetchServices()
+	if e2 != nil {
+		fmt.Printf("\ninsufficient privileges to access services")
+		return e2
+	}
+
+	_, e3 := s.fetchSecrets()
+	if e3 != nil {
+		fmt.Printf("insufficient privileges to secrets")
+		return e3
+	}
+
+	_, e4 := s.fetchIngress()
+	if e4 != nil {
+		fmt.Printf("\ninsufficient privileges to access ingress")
+		return e4
+	} else {
+		fmt.Printf("\nsuccessfully checked privileges to access cluster configuration")
+		return nil
+	}
+}
+
+func (s *Server) logObjects() {
+	cm, _ := s.fetchConfigMaps()
+	sv, _ := s.fetchServices()
+	sl, _ := s.fetchSecrets()
+	il, _ := s.fetchIngress()
+	fmt.Printf("\ndetected %d config maps in cluster", len(cm.Items))
+	fmt.Printf("\ndetected %d services in cluster", len(sv.Items))
+	fmt.Printf("\ndetected %d secrets in cluster", len(sl.Items))
+	fmt.Printf("\ndetected %d ingress in cluster", len(il.Items))
+	//klog.Info("accessed config objects")
 	time.Sleep(time.Second * 7)
 }
 
-func (s *Server) fetchServices() *v1.ServiceList {
-	sv, _ := s.Kube.Client.CoreV1().Services("").List(
+func (s *Server) fetchServices() (*v1.ServiceList, error) {
+	return s.Kube.Client.CoreV1().Services("").List(
 		context.TODO(),
 		metav1.ListOptions{})
-	return sv
 }
 
-func (s *Server) fetchConfigMaps() *v1.ConfigMapList {
-	cml, _ := s.Kube.Client.CoreV1().ConfigMaps("").List(
+func (s *Server) fetchConfigMaps() (*v1.ConfigMapList, error) {
+	return s.Kube.Client.CoreV1().ConfigMaps("").List(
 		context.TODO(),
 		metav1.ListOptions{})
-	return cml
 }
 
-func (s *Server) fetchSecrets() *v1.SecretList {
-	sl, _ := s.Kube.Client.CoreV1().Secrets("").List(
+func (s *Server) fetchSecrets() (*v1.SecretList, error) {
+	return s.Kube.Client.CoreV1().Secrets("").List(
 		context.TODO(),
 		metav1.ListOptions{})
-	return sl
 }
 
-func (s *Server) fetchIngress() *nv1.IngressList {
-	il, _ := s.Kube.Client.NetworkingV1().Ingresses("").List(
+func (s *Server) fetchIngress() (*nv1.IngressList, error) {
+	return s.Kube.Client.NetworkingV1().Ingresses("").List(
 		context.TODO(),
 		metav1.ListOptions{})
-	return il
 }
 
 func (s *Server) panic(e error) {
