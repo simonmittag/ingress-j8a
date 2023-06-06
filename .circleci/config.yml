@@ -21,12 +21,21 @@ jobs:
           name: Run tests
           command: |
             go test -v ./...
+  dockerize:
+    working_directory: ~/repo
+    docker:
+      - image: cimg/go:1.20
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.14
       - run:
           name: Build application Docker image
           command: |
-            docker build -t github.com/simonmittag/ingress-j8a .
+            docker build -t github.com/simonmittag/ingress-j8a . 
 
 workflows:
   sample:
     jobs:
       - build
+      - dockerize
