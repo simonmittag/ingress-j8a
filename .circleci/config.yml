@@ -21,6 +21,10 @@ jobs:
           name: Run tests
           command: |
             go test -v ./...
+      - run:
+          name: Build application Docker image
+          command: |
+            docker build -t github.com/simonmittag/ingress-j8a .
 
 workflows:
   sample:
