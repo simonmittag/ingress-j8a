@@ -13,7 +13,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
-	"k8s.io/klog/v2"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -30,6 +29,7 @@ var KubeVersionMinimum = Kube{
 type Server struct {
 	Version string
 	Kube    *Kube
+	Log     Logger
 }
 
 type Kube struct {
@@ -48,6 +48,7 @@ func NewServer() *Server {
 			VersionMajor: 0,
 			VersionMinor: 0,
 		},
+		Log: NewKLoggerWrapper(),
 	}
 }
 
@@ -58,6 +59,9 @@ func (s *Server) Bootstrap() {
 
 	for {
 		s.logObjects()
+
+		//klog.Info("accessed config objects")
+		time.Sleep(time.Second * 7)
 	}
 }
 
@@ -93,7 +97,7 @@ func (s *Server) authenticateToKubeExternal() error {
 	// create the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err == nil {
-		klog.Infoln("authenticated external to cluster in development mode")
+		s.Log.Info("authenticated external to cluster in development mode")
 		s.Kube.Client = clientset
 	} else {
 		return err
@@ -112,7 +116,7 @@ func (s *Server) authenticateToKubeInternal() error {
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err == nil {
-		klog.Info("authenticated inside cluster")
+		s.Log.Info("authenticated inside cluster")
 		s.Kube.Client = clientset
 		return nil
 	} else {
@@ -135,7 +139,7 @@ func (s *Server) checkKubeVersion() *Server {
 		e := errors.New(fmt.Sprintf("detected unsupported Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor))
 		s.panic(e)
 	} else {
-		klog.Infof("detected Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor)
+		s.Log.Infof("detected Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor)
 	}
 	return s
 }
@@ -161,22 +165,20 @@ func (s *Server) checkPermissions() *Server {
 	if e4 != nil {
 		s.panic(fmt.Errorf(insufficient+"ingress", e4))
 	} else {
-		klog.Infof("successfully checked privileges to access cluster configuration")
+		s.Log.Info("successfully checked privileges to access cluster configuration")
 	}
 	return s
 }
 
 func (s *Server) logObjects() {
 	cm, _ := s.fetchConfigMaps()
+	s.Log.Infof("detected %d config maps in cluster", len(cm.Items))
 	sv, _ := s.fetchServices()
+	s.Log.Infof("detected %d services in cluster", len(sv.Items))
 	sl, _ := s.fetchSecrets()
+	s.Log.Infof("detected %d secrets in cluster", len(sl.Items))
 	il, _ := s.fetchIngress()
-	klog.Infof("detected %d config maps in cluster", len(cm.Items))
-	klog.Infof("detected %d services in cluster", len(sv.Items))
-	klog.Infof("detected %d secrets in cluster", len(sl.Items))
-	klog.Infof("detected %d ingress in cluster", len(il.Items))
-	//klog.Info("accessed config objects")
-	time.Sleep(time.Second * 7)
+	s.Log.Infof("detected %d ingress in cluster", len(il.Items))
 }
 
 func (s *Server) fetchServices() (*v1.ServiceList, error) {
@@ -204,7 +206,7 @@ func (s *Server) fetchIngress() (*nv1.IngressList, error) {
 }
 
 func (s *Server) panic(e error) {
-	klog.Fatalf("cannot continue because: %v", e)
-	klog.Fatalf("system shutting down")
+	s.Log.Fatalf("cannot continue because: %v", e)
+	s.Log.Fatalf("system shutting down")
 	os.Exit(-1)
 }
