@@ -52,36 +52,25 @@ func NewServer() *Server {
 }
 
 func (s *Server) Bootstrap() {
-	e := s.authenticate()
-	if e != nil {
-		s.panic(e)
-	}
-	e = s.checkKubeVersion()
-	if e != nil {
-		s.panic(e)
-	}
-	e = s.checkPermissions()
-	if e != nil {
-		s.panic(e)
-	}
+	s.authenticate().
+		checkKubeVersion().
+		checkPermissions()
 
 	for {
 		s.logObjects()
 	}
 }
 
-func (s *Server) authenticate() error {
+func (s *Server) authenticate() *Server {
 	//TODO for now always authenticate external first to make development easier.
 	//put this behind a flag eventually and do internal as default
 	if e := s.authenticateToKubeExternal(); e != nil {
 		e1 := s.authenticateToKubeInternal()
 		if e1 != nil {
-			return e
-		} else {
-			return nil
+			s.panic(fmt.Errorf("unable to authenticate to cluster, cause %v", e1))
 		}
 	}
-	return nil
+	return s
 }
 
 func (s *Server) authenticateToKubeExternal() error {
@@ -106,10 +95,10 @@ func (s *Server) authenticateToKubeExternal() error {
 	if err == nil {
 		klog.Infoln("authenticated external to cluster in development mode")
 		s.Kube.Client = clientset
-		return nil
 	} else {
 		return err
 	}
+	return nil
 }
 
 func (s *Server) authenticateToKubeInternal() error {
@@ -129,6 +118,7 @@ func (s *Server) authenticateToKubeInternal() error {
 	} else {
 		return err
 	}
+
 }
 
 func (s *Server) detectKubeVersion() {
@@ -138,46 +128,42 @@ func (s *Server) detectKubeVersion() {
 	s.Kube.VersionMinor, _ = strconv.Atoi(vi.Minor)
 }
 
-func (s *Server) checkKubeVersion() error {
+func (s *Server) checkKubeVersion() *Server {
 	s.detectKubeVersion()
 	if s.Kube.VersionMajor < KubeVersionMinimum.VersionMajor ||
 		s.Kube.VersionMinor < KubeVersionMinimum.VersionMinor {
-		msg := fmt.Sprintf("detected unsupported Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor)
-		klog.Fatal(msg)
-		return errors.New(msg)
+		e := errors.New(fmt.Sprintf("detected unsupported Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor))
+		s.panic(e)
 	} else {
 		klog.Infof("detected Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor)
-		return nil
 	}
+	return s
 }
 
-func (s *Server) checkPermissions() error {
+func (s *Server) checkPermissions() *Server {
+	insufficient := "insufficient privileges to access "
 	_, e1 := s.fetchConfigMaps()
 	if e1 != nil {
-		klog.Fatalf("insufficient privileges to access configMaps")
-		return e1
+		s.panic(fmt.Errorf(insufficient+"configMaps", e1))
 	}
 
 	_, e2 := s.fetchServices()
 	if e2 != nil {
-		klog.Fatalf("insufficient privileges to access services")
-		return e2
+		s.panic(fmt.Errorf(insufficient+"services", e2))
 	}
 
 	_, e3 := s.fetchSecrets()
 	if e3 != nil {
-		klog.Fatalf("insufficient privileges to secrets")
-		return e3
+		s.panic(fmt.Errorf(insufficient+"secrets", e3))
 	}
 
 	_, e4 := s.fetchIngress()
 	if e4 != nil {
-		klog.Fatalf("insufficient privileges to access ingress")
-		return e4
+		s.panic(fmt.Errorf(insufficient+"ingress", e4))
 	} else {
 		klog.Infof("successfully checked privileges to access cluster configuration")
-		return nil
 	}
+	return s
 }
 
 func (s *Server) logObjects() {
@@ -218,6 +204,7 @@ func (s *Server) fetchIngress() (*nv1.IngressList, error) {
 }
 
 func (s *Server) panic(e error) {
-	klog.Fatalf("unhandled error, system needs to shut down: %v", e)
+	klog.Fatalf("cannot continue because: %v", e)
+	klog.Fatalf("system shutting down")
 	os.Exit(-1)
 }
