@@ -39,7 +39,7 @@ func (s *Server) createOrDetectJ8aNamespace() *Server {
 	return s
 }
 
-func (s *Server) createJ8aServiceTypeLoadBalancer() *Server {
+func (s *Server) createOrDetectJ8aServiceTypeLoadBalancer() *Server {
 
 	servicesClient := s.Kube.Client.CoreV1().Services(s.J8a.Namespace)
 
@@ -71,9 +71,15 @@ func (s *Server) createJ8aServiceTypeLoadBalancer() *Server {
 
 	result, err := servicesClient.Create(context.TODO(), service, metav1.CreateOptions{})
 	if err != nil {
-		s.Log.Fatalf("unable to create service %v in cluster, cause %v", s.J8a.Service, err)
+		result, err := servicesClient.Get(context.TODO(), s.J8a.Service, metav1.GetOptions{})
+		if err != nil {
+			s.Log.Fatalf("unable to create or detect service %v in cluster, cause %v", s.J8a.Service, err)
+		} else {
+			s.Log.Infof("detected service %v in cluster", result.ObjectMeta.Name)
+		}
+	} else {
+		s.Log.Infof("created service %v in cluster.", result.GetObjectMeta().GetName())
 	}
-	s.Log.Infof("created service %v in cluster.", result.GetObjectMeta().GetName())
 
 	return s
 }

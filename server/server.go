@@ -101,7 +101,7 @@ func (s *Server) Bootstrap() {
 		checkPermissions().
 		createOrDetectJ8aNamespace().
 		createOrDetectJ8aDeployment().
-		createJ8aServiceTypeLoadBalancer()
+		createOrDetectJ8aServiceTypeLoadBalancer()
 
 	for {
 		s.logObjects()
@@ -143,7 +143,7 @@ func (s *Server) authenticateToKubeExternal() error {
 	// create the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err == nil {
-		s.Log.Info("authenticated external to cluster in development mode")
+		s.Log.Info("authenticated external to cluster")
 		s.Kube.Client = clientset
 	} else {
 		return err
