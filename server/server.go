@@ -99,8 +99,8 @@ func (s *Server) Bootstrap() {
 	s.authenticate().
 		checkKubeVersion().
 		checkPermissions().
-		createJ8aNamespace().
-		createJ8aDeployment().
+		createOrDetectJ8aNamespace().
+		createOrDetectJ8aDeployment().
 		createJ8aServiceTypeLoadBalancer()
 
 	for {

@@ -12,7 +12,7 @@ import (
 
 func int32Ptr(i int32) *int32 { return &i }
 
-func (s *Server) createJ8aNamespace() *Server {
+func (s *Server) createOrDetectJ8aNamespace() *Server {
 
 	nsName := &apiv1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -78,7 +78,7 @@ func (s *Server) createJ8aServiceTypeLoadBalancer() *Server {
 	return s
 }
 
-func (s *Server) createJ8aDeployment() *Server {
+func (s *Server) createOrDetectJ8aDeployment() *Server {
 	var v string
 	if strings.HasPrefix(s.J8a.Version, "v") {
 		v = s.J8a.Version[1:]
@@ -132,9 +132,16 @@ func (s *Server) createJ8aDeployment() *Server {
 
 	result, err := deploymentsClient.Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
-		s.Log.Fatalf("unable to created deployment %v in cluster, cause %v", s.J8a.Deployment.Name, err)
+		result, err := deploymentsClient.Get(context.TODO(), s.J8a.Deployment.Name, metav1.GetOptions{})
+		if err != nil {
+			s.Log.Fatalf("unable to create or detect deployment %v in cluster, cause %v", s.J8a.Deployment.Name, err)
+		} else {
+			s.J8a.Deployment.Replicas = int(*result.Spec.Replicas)
+			s.Log.Infof("detected deployment %v in cluster", result.ObjectMeta.Name)
+		}
+	} else {
+		s.Log.Infof("created deployment %v in cluster.", result.GetObjectMeta().GetName())
 	}
-	s.Log.Infof("created deployment %v in cluster.", result.GetObjectMeta().GetName())
 
 	return s
 }
