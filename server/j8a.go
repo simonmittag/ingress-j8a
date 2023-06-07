@@ -6,11 +6,12 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 )
 
 func int32Ptr(i int32) *int32 { return &i }
 
-func (s *Server) createJ8aNamespace() {
+func (s *Server) createJ8aNamespace() *Server {
 	const j8aNamespace string = "j8a"
 
 	nsName := &apiv1.Namespace{
@@ -35,40 +36,58 @@ func (s *Server) createJ8aNamespace() {
 			s.panic(fmt.Errorf("unable to create or locate J8a namespace in cluster, cause %v", e))
 		}
 	}
+	return s
 }
 
-func (s *Server) createJ8aDeployment() {
-	deploymentsClient := s.Kube.Client.AppsV1().Deployments(apiv1.NamespaceDefault)
+func (s *Server) createJ8aDeployment() *Server {
+	var v string
+	if strings.HasPrefix(s.J8a.Version, "v") {
+		v = s.J8a.Version[1:]
+	} else {
+		v = s.J8a.Version
+	}
+
+	deploymentsClient := s.Kube.Client.AppsV1().Deployments(s.Kube.Namespace.ObjectMeta.Name)
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "demo-deployment",
+			Name:      "j8a-deployment",
+			Namespace: s.Kube.Namespace.ObjectMeta.Name,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: int32Ptr(2),
+			Replicas: int32Ptr(int32(s.J8a.Replicas)),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": "demo",
+					"app": "j8a",
 				},
 			},
 			Template: apiv1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"app": "demo",
+						"app": "j8a",
 					},
 				},
 				Spec: apiv1.PodSpec{
 					Containers: []apiv1.Container{
 						{
-							Name:  "web",
-							Image: "nginx:1.12",
+							Name:  "j8a",
+							Image: "simonmittag/j8a:" + v,
 							Ports: []apiv1.ContainerPort{
 								{
 									Name:          "http",
 									Protocol:      apiv1.ProtocolTCP,
 									ContainerPort: 80,
 								},
+								{
+									Name:          "https",
+									Protocol:      apiv1.ProtocolTCP,
+									ContainerPort: 443,
+								},
 							},
+							Env: []apiv1.EnvVar{{
+								Name:  "J8ACFG_YML",
+								Value: getInitialJ8aConfig(),
+							}},
 						},
 					},
 				},
@@ -76,11 +95,28 @@ func (s *Server) createJ8aDeployment() {
 		},
 	}
 
-	// Create Deployment
-	fmt.Println("Creating deployment...")
 	result, err := deploymentsClient.Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
-		panic(err)
+		s.Log.Fatalf("unable to deploy j8a to cluster, cause %v", err)
 	}
-	fmt.Printf("Created deployment %q.\n", result.GetObjectMeta().GetName())
+	s.Log.Infof("deployed %v to cluster.", result.GetObjectMeta().GetName())
+
+	return s
+}
+
+func getInitialJ8aConfig() string {
+	return `---
+            connection:
+              downstream:
+                http:
+                  port: 80
+            routes:
+              - path: "/"
+                resource: placeholder
+            resources:
+              placeholder:
+                - url:
+                    scheme: http
+                    host: localhost
+                    port: 59999`
 }

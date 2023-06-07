@@ -21,6 +21,9 @@ import (
 
 const Version = "v0.1"
 
+const J8aVersion = "v1.0.1"
+const J8aImage = "simonmittag/j8a"
+
 var KubeVersionMinimum = Kube{
 	VersionMajor: 1,
 	VersionMinor: 22,
@@ -29,7 +32,14 @@ var KubeVersionMinimum = Kube{
 type Server struct {
 	Version string
 	Kube    *Kube
+	J8a     *J8a
 	Log     Logger
+}
+
+type J8a struct {
+	Version  string
+	Image    string
+	Replicas int
 }
 
 type Kube struct {
@@ -40,6 +50,7 @@ type Kube struct {
 	VersionMinor int
 }
 
+// TODO: this method contains a lot of defaults
 func NewServer() *Server {
 	return &Server{
 		Version: Version,
@@ -50,6 +61,11 @@ func NewServer() *Server {
 			VersionMajor: 0,
 			VersionMinor: 0,
 		},
+		J8a: &J8a{
+			Version:  J8aVersion,
+			Image:    J8aImage,
+			Replicas: 3,
+		},
 		Log: NewKLoggerWrapper(),
 	}
 }
@@ -58,7 +74,8 @@ func (s *Server) Bootstrap() {
 	s.authenticate().
 		checkKubeVersion().
 		checkPermissions().
-		createJ8aNamespace()
+		createJ8aNamespace().
+		createJ8aDeployment()
 
 	for {
 		s.logObjects()
