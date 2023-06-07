@@ -35,6 +35,7 @@ type Server struct {
 type Kube struct {
 	Client       *kubernetes.Clientset
 	Config       *rest.Config
+	Namespace    *v1.Namespace
 	VersionMajor int
 	VersionMinor int
 }
@@ -45,6 +46,7 @@ func NewServer() *Server {
 		Kube: &Kube{
 			Client:       nil,
 			Config:       nil,
+			Namespace:    nil,
 			VersionMajor: 0,
 			VersionMinor: 0,
 		},
@@ -55,7 +57,8 @@ func NewServer() *Server {
 func (s *Server) Bootstrap() {
 	s.authenticate().
 		checkKubeVersion().
-		checkPermissions()
+		checkPermissions().
+		createJ8aNamespace()
 
 	for {
 		s.logObjects()
