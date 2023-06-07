@@ -35,7 +35,7 @@ jobs:
             docker build -t github.com/simonmittag/ingress-j8a . 
 
 workflows:
-  sample:
+  build:
     jobs:
       - build
       - dockerize
