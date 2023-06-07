@@ -25,8 +25,10 @@ const J8aVersion = "v1.0.1"
 const J8aImage = "simonmittag/j8a"
 
 var KubeVersionMinimum = Kube{
-	VersionMajor: 1,
-	VersionMinor: 22,
+	Version: KVersion{
+		Major: 1,
+		Minor: 22,
+	},
 }
 
 type Server struct {
@@ -36,18 +38,29 @@ type Server struct {
 	Log     Logger
 }
 
-type J8a struct {
-	Version  string
-	Image    string
+type Deployment struct {
+	Name     string
 	Replicas int
 }
 
+type J8a struct {
+	Version    string
+	Image      string
+	Namespace  *v1.Namespace
+	Deployment Deployment
+	Service    string
+	Pod        string
+}
+
 type Kube struct {
-	Client       *kubernetes.Clientset
-	Config       *rest.Config
-	Namespace    *v1.Namespace
-	VersionMajor int
-	VersionMinor int
+	Client  *kubernetes.Clientset
+	Config  *rest.Config
+	Version KVersion
+}
+
+type KVersion struct {
+	Major int
+	Minor int
 }
 
 // TODO: this method contains a lot of defaults
@@ -55,16 +68,23 @@ func NewServer() *Server {
 	return &Server{
 		Version: Version,
 		Kube: &Kube{
-			Client:       nil,
-			Config:       nil,
-			Namespace:    nil,
-			VersionMajor: 0,
-			VersionMinor: 0,
+			Client: nil,
+			Config: nil,
+			Version: KVersion{
+				Major: 0,
+				Minor: 0,
+			},
 		},
 		J8a: &J8a{
-			Version:  J8aVersion,
-			Image:    J8aImage,
-			Replicas: 3,
+			Version:   J8aVersion,
+			Image:     J8aImage,
+			Namespace: nil,
+			Deployment: Deployment{
+				Name:     "deployment-j8a",
+				Replicas: 3,
+			},
+			Service: "loadbalancer-j8a",
+			Pod:     "j8a",
 		},
 		Log: NewKLoggerWrapper(),
 	}
@@ -75,7 +95,8 @@ func (s *Server) Bootstrap() {
 		checkKubeVersion().
 		checkPermissions().
 		createJ8aNamespace().
-		createJ8aDeployment()
+		createJ8aDeployment().
+		createJ8aServiceTypeLoadBalancer()
 
 	for {
 		s.logObjects()
@@ -148,18 +169,18 @@ func (s *Server) authenticateToKubeInternal() error {
 func (s *Server) detectKubeVersion() {
 	dc, _ := discovery.NewDiscoveryClientForConfig(s.Kube.Config)
 	vi, _ := dc.ServerVersion()
-	s.Kube.VersionMajor, _ = strconv.Atoi(vi.Major)
-	s.Kube.VersionMinor, _ = strconv.Atoi(vi.Minor)
+	s.Kube.Version.Major, _ = strconv.Atoi(vi.Major)
+	s.Kube.Version.Minor, _ = strconv.Atoi(vi.Minor)
 }
 
 func (s *Server) checkKubeVersion() *Server {
 	s.detectKubeVersion()
-	if s.Kube.VersionMajor < KubeVersionMinimum.VersionMajor ||
-		s.Kube.VersionMinor < KubeVersionMinimum.VersionMinor {
-		e := errors.New(fmt.Sprintf("detected unsupported Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor))
+	if s.Kube.Version.Major < KubeVersionMinimum.Version.Major ||
+		s.Kube.Version.Minor < KubeVersionMinimum.Version.Minor {
+		e := errors.New(fmt.Sprintf("detected unsupported Kubernetes version %v.%v", s.Kube.Version.Major, s.Kube.Version.Minor))
 		s.panic(e)
 	} else {
-		s.Log.Infof("detected Kubernetes version %v.%v", s.Kube.VersionMajor, s.Kube.VersionMinor)
+		s.Log.Infof("detected Kubernetes version %v.%v", s.Kube.Version.Major, s.Kube.Version.Minor)
 	}
 	return s
 }

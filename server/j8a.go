@@ -6,6 +6,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"strings"
 )
 
@@ -23,19 +24,60 @@ func (s *Server) createJ8aNamespace() *Server {
 	ns, e := s.Kube.Client.CoreV1().Namespaces().
 		Create(context.Background(), nsName, metav1.CreateOptions{})
 	if e == nil {
-		s.Kube.Namespace = ns
+		s.J8a.Namespace = ns
 		s.Log.Infof("created namespace %v", ns.ObjectMeta.Name)
 	} else {
 		ns, e := s.Kube.Client.CoreV1().Namespaces().
 			Get(context.Background(), j8aNamespace, metav1.GetOptions{})
 		if ns != nil {
-			s.Kube.Namespace = ns
+			s.J8a.Namespace = ns
 			s.Log.Infof("detected namespace %v", ns.ObjectMeta.Name)
 		}
 		if e != nil {
-			s.panic(fmt.Errorf("unable to create or locate J8a namespace in cluster, cause %v", e))
+			s.panic(fmt.Errorf("unable to create or namespace J8a in cluster, cause %v", e))
 		}
 	}
+	return s
+}
+
+func (s *Server) createJ8aServiceTypeLoadBalancer() *Server {
+
+	servicesClient := s.Kube.Client.CoreV1().Services(s.J8a.Namespace.ObjectMeta.Name)
+
+	// Define the service
+	service := &apiv1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      s.J8a.Service,
+			Namespace: s.J8a.Namespace.ObjectMeta.Name,
+		},
+		Spec: apiv1.ServiceSpec{
+			Selector: map[string]string{
+				"app": "j8a", // Label selector to match the pods in the deployment
+			},
+			Type: apiv1.ServiceTypeLoadBalancer,
+			Ports: []apiv1.ServicePort{
+				{
+					Name:       "http",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       80,
+					TargetPort: intstr.FromInt(80), // Assuming the pods expose port 80
+				},
+				{
+					Name:       "https",
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       443,
+					TargetPort: intstr.FromInt(443), // Assuming the pods expose port 443
+				},
+			},
+		},
+	}
+
+	result, err := servicesClient.Create(context.TODO(), service, metav1.CreateOptions{})
+	if err != nil {
+		s.Log.Fatalf("unable to create service %v in cluster, cause %v", s.J8a.Service, err)
+	}
+	s.Log.Infof("created service %v in cluster.", result.GetObjectMeta().GetName())
+
 	return s
 }
 
@@ -47,15 +89,15 @@ func (s *Server) createJ8aDeployment() *Server {
 		v = s.J8a.Version
 	}
 
-	deploymentsClient := s.Kube.Client.AppsV1().Deployments(s.Kube.Namespace.ObjectMeta.Name)
+	deploymentsClient := s.Kube.Client.AppsV1().Deployments(s.J8a.Namespace.ObjectMeta.Name)
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "j8a-deployment",
-			Namespace: s.Kube.Namespace.ObjectMeta.Name,
+			Name:      s.J8a.Deployment.Name,
+			Namespace: s.J8a.Namespace.ObjectMeta.Name,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: int32Ptr(int32(s.J8a.Replicas)),
+			Replicas: int32Ptr(int32(s.J8a.Deployment.Replicas)),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app": "j8a",
@@ -70,8 +112,8 @@ func (s *Server) createJ8aDeployment() *Server {
 				Spec: apiv1.PodSpec{
 					Containers: []apiv1.Container{
 						{
-							Name:  "j8a",
-							Image: "simonmittag/j8a:" + v,
+							Name:  s.J8a.Pod,
+							Image: s.J8a.Image + ":" + v,
 							Ports: []apiv1.ContainerPort{
 								{
 									Name:          "http",
@@ -97,9 +139,9 @@ func (s *Server) createJ8aDeployment() *Server {
 
 	result, err := deploymentsClient.Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
-		s.Log.Fatalf("unable to deploy j8a to cluster, cause %v", err)
+		s.Log.Fatalf("unable to created deployment %v in cluster, cause %v", s.J8a.Deployment.Name, err)
 	}
-	s.Log.Infof("deployed %v to cluster.", result.GetObjectMeta().GetName())
+	s.Log.Infof("created deployment %v in cluster.", result.GetObjectMeta().GetName())
 
 	return s
 }
