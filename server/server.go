@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-const Version = "v0.1"
+const Version = "v0.1.1"
 
 var KubeVersionMinimum = Kube{
 	Version: KVersion{
