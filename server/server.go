@@ -21,9 +21,6 @@ import (
 
 const Version = "v0.1"
 
-const J8aVersion = "v1.0.1"
-const J8aImage = "simonmittag/j8a"
-
 var KubeVersionMinimum = Kube{
 	Version: KVersion{
 		Major: 1,
@@ -43,13 +40,18 @@ type Deployment struct {
 	Replicas int
 }
 
+type Pod struct {
+	Name  string
+	Label map[string]string
+}
+
 type J8a struct {
 	Version    string
 	Image      string
-	Namespace  *v1.Namespace
+	Namespace  string
 	Deployment Deployment
 	Service    string
-	Pod        string
+	Pod        Pod
 }
 
 type Kube struct {
@@ -76,15 +78,18 @@ func NewServer() *Server {
 			},
 		},
 		J8a: &J8a{
-			Version:   J8aVersion,
-			Image:     J8aImage,
-			Namespace: nil,
+			Version:   "v1.0.1",
+			Image:     "simonmittag/j8a",
+			Namespace: "j8a",
 			Deployment: Deployment{
 				Name:     "deployment-j8a",
 				Replicas: 3,
 			},
 			Service: "loadbalancer-j8a",
-			Pod:     "j8a",
+			Pod: Pod{
+				Name:  "j8a",
+				Label: map[string]string{"app": "j8a"},
+			},
 		},
 		Log: NewKLoggerWrapper(),
 	}

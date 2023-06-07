@@ -13,24 +13,23 @@ import (
 func int32Ptr(i int32) *int32 { return &i }
 
 func (s *Server) createJ8aNamespace() *Server {
-	const j8aNamespace string = "j8a"
 
 	nsName := &apiv1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: j8aNamespace,
+			Name: s.J8a.Namespace,
 		},
 	}
 
 	ns, e := s.Kube.Client.CoreV1().Namespaces().
 		Create(context.Background(), nsName, metav1.CreateOptions{})
 	if e == nil {
-		s.J8a.Namespace = ns
+		s.J8a.Namespace = ns.ObjectMeta.Name
 		s.Log.Infof("created namespace %v", ns.ObjectMeta.Name)
 	} else {
 		ns, e := s.Kube.Client.CoreV1().Namespaces().
-			Get(context.Background(), j8aNamespace, metav1.GetOptions{})
+			Get(context.Background(), s.J8a.Namespace, metav1.GetOptions{})
 		if ns != nil {
-			s.J8a.Namespace = ns
+			s.J8a.Namespace = ns.ObjectMeta.Name
 			s.Log.Infof("detected namespace %v", ns.ObjectMeta.Name)
 		}
 		if e != nil {
@@ -42,19 +41,17 @@ func (s *Server) createJ8aNamespace() *Server {
 
 func (s *Server) createJ8aServiceTypeLoadBalancer() *Server {
 
-	servicesClient := s.Kube.Client.CoreV1().Services(s.J8a.Namespace.ObjectMeta.Name)
+	servicesClient := s.Kube.Client.CoreV1().Services(s.J8a.Namespace)
 
 	// Define the service
 	service := &apiv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.J8a.Service,
-			Namespace: s.J8a.Namespace.ObjectMeta.Name,
+			Namespace: s.J8a.Namespace,
 		},
 		Spec: apiv1.ServiceSpec{
-			Selector: map[string]string{
-				"app": "j8a", // Label selector to match the pods in the deployment
-			},
-			Type: apiv1.ServiceTypeLoadBalancer,
+			Selector: s.J8a.Pod.Label,
+			Type:     apiv1.ServiceTypeLoadBalancer,
 			Ports: []apiv1.ServicePort{
 				{
 					Name:       "http",
@@ -89,30 +86,26 @@ func (s *Server) createJ8aDeployment() *Server {
 		v = s.J8a.Version
 	}
 
-	deploymentsClient := s.Kube.Client.AppsV1().Deployments(s.J8a.Namespace.ObjectMeta.Name)
+	deploymentsClient := s.Kube.Client.AppsV1().Deployments(s.J8a.Namespace)
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.J8a.Deployment.Name,
-			Namespace: s.J8a.Namespace.ObjectMeta.Name,
+			Namespace: s.J8a.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: int32Ptr(int32(s.J8a.Deployment.Replicas)),
 			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{
-					"app": "j8a",
-				},
+				MatchLabels: s.J8a.Pod.Label,
 			},
 			Template: apiv1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"app": "j8a",
-					},
+					Labels: s.J8a.Pod.Label,
 				},
 				Spec: apiv1.PodSpec{
 					Containers: []apiv1.Container{
 						{
-							Name:  s.J8a.Pod,
+							Name:  s.J8a.Pod.Name,
 							Image: s.J8a.Image + ":" + v,
 							Ports: []apiv1.ContainerPort{
 								{
