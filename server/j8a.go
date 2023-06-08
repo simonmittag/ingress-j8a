@@ -152,6 +152,20 @@ func (s *Server) createOrDetectJ8aDeployment() *Server {
 	return s
 }
 
+func (s *Server) updateJ8aDeploymentWithFullClusterConfig() {
+	il, _ := s.fetchIngress()
+	for _, igrs := range il.Items {
+		_ = igrs.Spec.Rules
+	}
+
+	// get services
+	// get secrets
+}
+
+func (s *Server) getIngresses() {
+
+}
+
 func getInitialJ8aConfig() string {
 	return `---
             connection:

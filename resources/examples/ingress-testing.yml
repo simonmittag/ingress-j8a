@@ -2,8 +2,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ingress-test
-  namespace: default
+  name: ingress-testing
+  namespace: testing
 spec:
   rules:
     - host: foo.bar.com

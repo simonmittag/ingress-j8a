@@ -101,7 +101,8 @@ func (s *Server) Bootstrap() {
 		checkPermissions().
 		createOrDetectJ8aNamespace().
 		createOrDetectJ8aDeployment().
-		createOrDetectJ8aServiceTypeLoadBalancer()
+		createOrDetectJ8aServiceTypeLoadBalancer().
+		updateJ8aDeploymentWithFullClusterConfig()
 
 	for {
 		s.logObjects()
@@ -173,9 +174,11 @@ func (s *Server) authenticateToKubeInternal() error {
 
 func (s *Server) detectKubeVersion() {
 	dc, _ := discovery.NewDiscoveryClientForConfig(s.Kube.Config)
-	vi, _ := dc.ServerVersion()
-	s.Kube.Version.Major, _ = strconv.Atoi(vi.Major)
-	s.Kube.Version.Minor, _ = strconv.Atoi(vi.Minor)
+	vi, e := dc.ServerVersion()
+	if e == nil {
+		s.Kube.Version.Major, _ = strconv.Atoi(vi.Major)
+		s.Kube.Version.Minor, _ = strconv.Atoi(vi.Minor)
+	}
 }
 
 func (s *Server) checkKubeVersion() *Server {
