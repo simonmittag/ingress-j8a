@@ -116,10 +116,7 @@ func (s *Server) authenticate() *Server {
 	//TODO for now always authenticate external first to make development easier.
 	//put this behind a flag eventually and do internal as default
 	if e := s.authenticateToKubeExternal(); e != nil {
-		e1 := s.authenticateToKubeInternal()
-		if e1 != nil {
-			s.panic(fmt.Errorf("unable to authenticate to cluster, cause %v", e1))
-		}
+		s.authenticateToKubeInternal()
 	}
 	return s
 }
@@ -144,30 +141,44 @@ func (s *Server) authenticateToKubeExternal() error {
 	// create the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err == nil {
-		s.Log.Info("authenticated external to cluster")
 		s.Kube.Client = clientset
+	} else {
+		return err
+	}
+
+	apiserver, err := clientset.CoreV1().Services("default").Get(context.TODO(), "kubernetes", metav1.GetOptions{})
+	if err == nil {
+		s.Log.Infof("authenticated external to kubernetes control plane running at %v uid: %v", config.Host, apiserver.ObjectMeta.UID)
 	} else {
 		return err
 	}
 	return nil
 }
 
-func (s *Server) authenticateToKubeInternal() error {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		return err
-	} else {
-		s.Kube.Config = config
-	}
+func (s *Server) authenticateToKubeInternal() {
+	const intErrMsg = "unable to authenticate internal to kubernetes control plane running at %v, cause: %v"
 
-	// creates the clientset
-	clientset, err := kubernetes.NewForConfig(config)
+	config, err := rest.InClusterConfig()
 	if err == nil {
-		s.Log.Info("authenticated inside cluster")
-		s.Kube.Client = clientset
-		return nil
+		s.Kube.Config = config
+		clientset, err := kubernetes.NewForConfig(config)
+		if err == nil {
+			s.Kube.Client = clientset
+		} else {
+			s.panic(fmt.Errorf(intErrMsg, config.Host, err))
+		}
+		apiserver, err := clientset.CoreV1().Services("default").Get(context.TODO(), "kubernetes", metav1.GetOptions{})
+		if err == nil {
+			s.Log.Infof("authenticated internal to kubernetes control plane running at %v uid: %v", config.Host, apiserver.ObjectMeta.UID)
+		} else {
+			s.panic(fmt.Errorf(intErrMsg, config.Host, err))
+		}
 	} else {
-		return err
+		host := "'undefined'"
+		if config != nil {
+			host = config.Host
+		}
+		s.panic(fmt.Errorf(intErrMsg, host, err))
 	}
 
 }
@@ -255,7 +266,7 @@ func (s *Server) fetchIngress() (*nv1.IngressList, error) {
 }
 
 func (s *Server) panic(e error) {
-	s.Log.Fatalf("cannot continue because: %v", e)
-	s.Log.Fatalf("system shutting down")
+	msg := "shutdown cause: %v"
+	s.Log.Fatalf(msg, e)
 	os.Exit(-1)
 }
