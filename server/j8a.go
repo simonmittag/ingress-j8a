@@ -5,6 +5,7 @@ import (
 	"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
+	netv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"strings"
@@ -24,16 +25,16 @@ func (s *Server) createOrDetectJ8aNamespace() *Server {
 		Create(context.Background(), nsName, metav1.CreateOptions{})
 	if e == nil {
 		s.J8a.Namespace = ns.ObjectMeta.Name
-		s.Log.Infof("created namespace %v", ns.ObjectMeta.Name)
+		s.Log.Infof("created namespace '%v'", ns.ObjectMeta.Name)
 	} else {
 		ns, e := s.Kube.Client.CoreV1().Namespaces().
 			Get(context.Background(), s.J8a.Namespace, metav1.GetOptions{})
 		if ns != nil {
 			s.J8a.Namespace = ns.ObjectMeta.Name
-			s.Log.Infof("detected namespace %v", ns.ObjectMeta.Name)
+			s.Log.Infof("detected namespace '%v'", ns.ObjectMeta.Name)
 		}
 		if e != nil {
-			s.panic(fmt.Errorf("unable to create or namespace J8a in cluster, cause %v", e))
+			s.panic(fmt.Errorf("unable to create or namespace %v, cause: %v", s.J8a.Namespace, e))
 		}
 	}
 	return s
@@ -73,12 +74,12 @@ func (s *Server) createOrDetectJ8aServiceTypeLoadBalancer() *Server {
 	if err != nil {
 		result, err := servicesClient.Get(context.TODO(), s.J8a.Service, metav1.GetOptions{})
 		if err != nil {
-			s.Log.Fatalf("unable to create or detect service %v in cluster, cause %v", s.J8a.Service, err)
+			s.Log.Fatalf("unable to create or detect service '%v', cause: %v", s.J8a.Service, err)
 		} else {
-			s.Log.Infof("detected service %v in cluster", result.ObjectMeta.Name)
+			s.Log.Infof("detected service '%v'", result.ObjectMeta.Name)
 		}
 	} else {
-		s.Log.Infof("created service %v in cluster.", result.GetObjectMeta().GetName())
+		s.Log.Infof("created service '%v'", result.GetObjectMeta().GetName())
 	}
 
 	return s
@@ -140,13 +141,51 @@ func (s *Server) createOrDetectJ8aDeployment() *Server {
 	if err != nil {
 		result, err := deploymentsClient.Get(context.TODO(), s.J8a.Deployment.Name, metav1.GetOptions{})
 		if err != nil {
-			s.Log.Fatalf("unable to create or detect deployment %v in cluster, cause %v", s.J8a.Deployment.Name, err)
+			s.Log.Fatalf("unable to create or detect deployment '%v', cause: %v", s.J8a.Deployment.Name, err)
 		} else {
-			s.J8a.Deployment.Replicas = int(*result.Spec.Replicas)
-			s.Log.Infof("detected deployment %v in cluster", result.ObjectMeta.Name)
+			s.Log.Infof("detected deployment '%v'", result.ObjectMeta.Name)
+			r := int(*result.Spec.Replicas)
+			if r != s.J8a.Deployment.Replicas {
+				//TODO do we want to persist this? not strictly required, can be reread from kube anytime. deployment is source of truth.
+				s.J8a.Deployment.Replicas = r
+				s.Log.Infof("j8a replicas configuration set to %v based on current value of deployment '%v'", r, result.ObjectMeta.Name)
+			}
 		}
 	} else {
-		s.Log.Infof("created deployment %v in cluster.", result.GetObjectMeta().GetName())
+		s.Log.Infof("created deployment '%v'", result.GetObjectMeta().GetName())
+	}
+
+	return s
+}
+
+func (s *Server) createOrDetectJ8aIngressClass() *Server {
+	ingressClassClient := s.Kube.Client.NetworkingV1().IngressClasses()
+
+	// Create the IngressClass resource
+	ingressClass := &netv1.IngressClass{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "ingress-j8a",
+			Annotations: map[string]string{
+				"ingressclass.kubernetes.io/is-default-class": "true",
+			},
+		},
+		Spec: netv1.IngressClassSpec{
+			//TODO: what does this point to? the docker image name?
+			Controller: "github.com/simonmittag/ingress-j8a",
+		},
+	}
+
+	// Create the IngressClass using the client
+	ic, err := ingressClassClient.Create(context.TODO(), ingressClass, metav1.CreateOptions{})
+	if err != nil {
+		result, err := ingressClassClient.Get(context.TODO(), "ingress-j8a", metav1.GetOptions{})
+		if err != nil {
+			s.Log.Fatalf("unable to create or detect ingress class '%v', cause %v", s.J8a.Deployment.Name, err)
+		} else {
+			s.Log.Infof("detected ingressClass '%v'", result.ObjectMeta.Name)
+		}
+	} else {
+		s.Log.Infof("created ingressClass '%v'", ic.ObjectMeta.Name)
 	}
 
 	return s
@@ -160,10 +199,6 @@ func (s *Server) updateJ8aDeploymentWithFullClusterConfig() {
 
 	// get services
 	// get secrets
-}
-
-func (s *Server) getIngresses() {
-
 }
 
 func getInitialJ8aConfig() string {

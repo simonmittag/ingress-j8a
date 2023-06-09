@@ -46,12 +46,13 @@ type Pod struct {
 }
 
 type J8a struct {
-	Version    string
-	Image      string
-	Namespace  string
-	Deployment Deployment
-	Service    string
-	Pod        Pod
+	Version      string
+	Image        string
+	Namespace    string
+	IngressClass string
+	Deployment   Deployment
+	Service      string
+	Pod          Pod
 }
 
 type Kube struct {
@@ -85,7 +86,8 @@ func NewServer() *Server {
 				Name:     "deployment-j8a",
 				Replicas: 3,
 			},
-			Service: "loadbalancer-j8a",
+			IngressClass: "ingress-j8a",
+			Service:      "loadbalancer-j8a",
 			Pod: Pod{
 				Name:  "j8a",
 				Label: map[string]string{"app": "j8a"},
@@ -100,6 +102,7 @@ func (s *Server) Bootstrap() {
 		checkKubeVersion().
 		checkPermissions().
 		createOrDetectJ8aNamespace().
+		createOrDetectJ8aIngressClass().
 		createOrDetectJ8aDeployment().
 		createOrDetectJ8aServiceTypeLoadBalancer().
 		updateJ8aDeploymentWithFullClusterConfig()
@@ -225,20 +228,20 @@ func (s *Server) checkPermissions() *Server {
 	if e4 != nil {
 		s.panic(fmt.Errorf(insufficient+"ingress", e4))
 	} else {
-		s.Log.Info("successfully checked privileges to access cluster configuration")
+		s.Log.Info("successfully checked privileges to access cluster configuration objects in all namespaces")
 	}
 	return s
 }
 
 func (s *Server) logObjects() {
 	cm, _ := s.fetchConfigMaps()
-	s.Log.Infof("detected %d config maps in cluster", len(cm.Items))
+	s.Log.Infof("detected %d config maps", len(cm.Items))
 	sv, _ := s.fetchServices()
-	s.Log.Infof("detected %d services in cluster", len(sv.Items))
+	s.Log.Infof("detected %d services", len(sv.Items))
 	sl, _ := s.fetchSecrets()
-	s.Log.Infof("detected %d secrets in cluster", len(sl.Items))
+	s.Log.Infof("detected %d secrets", len(sl.Items))
 	il, _ := s.fetchIngress()
-	s.Log.Infof("detected %d ingress in cluster", len(il.Items))
+	s.Log.Infof("detected %d ingress", len(il.Items))
 }
 
 func (s *Server) fetchServices() (*v1.ServiceList, error) {
