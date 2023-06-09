@@ -49,6 +49,10 @@ func (s *Server) createOrDetectJ8aServiceTypeLoadBalancer() *Server {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.J8a.Service,
 			Namespace: s.J8a.Namespace,
+			Annotations: map[string]string{
+				"service.beta.kubernetes.io/aws-load-balancer-type": "nlb",
+				//"service.beta.kubernetes.io/aws-load-balancer-internal": "false",
+			},
 		},
 		Spec: apiv1.ServiceSpec{
 			Selector: s.J8a.Pod.Label,
