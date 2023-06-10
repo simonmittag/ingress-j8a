@@ -40,7 +40,8 @@ func main() {
 	case Server:
 		server.
 			NewServer().
-			Bootstrap()
+			Bootstrap().
+			Daemon()
 	case Version:
 		printVersion()
 	case Usage:

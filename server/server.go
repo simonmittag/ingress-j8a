@@ -106,7 +106,14 @@ func NewServer() *Server {
 	}
 }
 
-func (s *Server) Bootstrap() {
+func (s *Server) Daemon() {
+	for {
+		s.logObjects()
+		time.Sleep(time.Second * 10)
+	}
+}
+
+func (s *Server) Bootstrap() *Server {
 	s.authenticate().
 		checkKubeVersion().
 		checkPermissions().
@@ -116,12 +123,7 @@ func (s *Server) Bootstrap() {
 		createOrDetectJ8aServiceTypeLoadBalancer().
 		updateJ8aDeploymentWithFullClusterConfig()
 
-	for i := 0; i < 10; i++ {
-		s.logObjects()
-
-		//klog.Info("accessed config objects")
-		time.Sleep(time.Second * 6)
-	}
+	return s
 }
 
 func (s *Server) authenticate() *Server {
