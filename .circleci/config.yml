@@ -66,7 +66,7 @@ jobs:
             ./cc-test-reporter before-build
             go test -cover -coverprofile=c.out ./...
             go tool cover -html=c.out -o coverage.html
-            ./cc-test-reporter after-build --coverage-input-type gocov -p "github.com/simonmittag/pwt"
+            ./cc-test-reporter after-build --coverage-input-type gocov -p "github.com/simonmittag/ingress-j8a"
             mv coverage.html /tmp/artifacts
 
       - store_artifacts:
