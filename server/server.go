@@ -13,6 +13,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	"k8s.io/klog/v2"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -187,9 +188,17 @@ func (s *Server) authenticateToKubeInternal() {
 }
 
 func (s *Server) detectKubeVersion() {
-	dc, _ := discovery.NewDiscoveryClientForConfig(s.Kube.Config)
+	defer func() {
+		if err := recover(); err != nil {
+			// Handle the panic or error here
+			klog.Error("unable to detect kube version")
+		}
+	}()
+
+	dc, e := discovery.NewDiscoveryClientForConfig(s.Kube.Config)
+
 	vi, e := dc.ServerVersion()
-	if e == nil {
+	if e == nil && vi != nil {
 		s.Kube.Version.Major, _ = strconv.Atoi(vi.Major)
 		s.Kube.Version.Minor, _ = strconv.Atoi(vi.Minor)
 	}
