@@ -1,25 +1,23 @@
 ---
 connection:
   downstream:
-    readTimeoutSeconds: 3
+    readTimeoutSeconds: 5
     roundTripTimeoutSeconds: 120
     idleTimeoutSeconds: 30
+    maxBodyBytes: 1048576
     http:
       port: 80
-    maxBodyBytes: 1048576
+    {{ .TLS }}
+
   upstream:
     socketTimeoutSeconds: 3
     readTimeoutSeconds: 120
     idleTimeoutSeconds: 10
+    #inside kube this must always be true
     tlsInsecureSkipVerify: true
 
 routes:
-  - path: /
-    resource: myupstream
+  {{ .ROUTES }}
 
 resources:
-  myupstream:
-    - url:
-        scheme: http
-        host: {{ .SERVICE }}
-        port: 80
+  {{ .RESOURCES }}

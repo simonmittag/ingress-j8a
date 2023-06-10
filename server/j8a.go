@@ -8,6 +8,7 @@ import (
 	netv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"os"
 	"strings"
 )
 
@@ -195,6 +196,8 @@ func (s *Server) createOrDetectJ8aIngressClass() *Server {
 	return s
 }
 
+// TODO: this may not work in the future but for initial config.
+// server cannot process listener callbacks while this is running (but it could queue them)
 func (s *Server) updateJ8aDeploymentWithFullClusterConfig() {
 	il, _ := s.fetchIngress()
 	for _, igrs := range il.Items {
@@ -203,6 +206,15 @@ func (s *Server) updateJ8aDeploymentWithFullClusterConfig() {
 
 	// get services
 	// get secrets
+}
+
+func getTemplateJ8aConfig() string {
+	f := "resources/j8a/configtemplate.yml"
+	t, e := os.ReadFile(f)
+	if e != nil {
+		t, _ = os.ReadFile("../" + f)
+	}
+	return string(t)
 }
 
 func getInitialJ8aConfig() string {
