@@ -3,6 +3,8 @@
 [![Github Issues](https://img.shields.io/github/issues/simonmittag/ingress-j8a)](https://github.com/simonmittag/ingress-j8a/issues)
 [![Github Activity](https://img.shields.io/github/commit-activity/m/simonmittag/ingress-j8a)](https://img.shields.io/github/commit-activity/m/simonmittag/ingress-j8a)  
 [![Go Report](https://goreportcard.com/badge/github.com/simonmittag/ingress-j8a)](https://goreportcard.com/report/github.com/simonmittag/ingress-j8a)
+[![CodeClimate Maintainability](https://api.codeclimate.com/v1/badges/326d3c304e32645811c8/maintainability)](https://codeclimate.com/github/simonmittag/ingress-j8a/maintainability)
+[![CodeClimate Test Coverage](https://api.codeclimate.com/v1/badges/326d3c304e32645811c8/test_coverage)](https://codeclimate.com/github/simonmittag/ingress-j8a/code)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/simonmittag/ingress-j8a)](https://img.shields.io/github/go-mod/go-version/simonmittag/ingress-j8a)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
