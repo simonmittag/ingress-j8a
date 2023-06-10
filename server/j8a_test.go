@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/client-go/kubernetes/fake"
 	"os"
 	"os/exec"
 	"runtime"
@@ -10,6 +11,30 @@ import (
 	"testing"
 	"text/template"
 )
+
+func TestCreateOrDetectNamespace(t *testing.T) {
+	s := NewServer()
+	s.Kube.Client = fake.NewSimpleClientset()
+	s.createOrDetectJ8aNamespace()
+}
+
+func TestCreateOrDetectServiceTypeLoadBalancer(t *testing.T) {
+	s := NewServer()
+	s.Kube.Client = fake.NewSimpleClientset()
+	s.createOrDetectJ8aServiceTypeLoadBalancer()
+}
+
+func TestCreateOrDetectJ8aDeployment(t *testing.T) {
+	s := NewServer()
+	s.Kube.Client = fake.NewSimpleClientset()
+	s.createOrDetectJ8aDeployment()
+}
+
+func TestCreateOrDetectJ8aIngressClass(t *testing.T) {
+	s := NewServer()
+	s.Kube.Client = fake.NewSimpleClientset()
+	s.createOrDetectJ8aIngressClass()
+}
 
 func TestJ8aReadInitialConfig(t *testing.T) {
 	s := getInitialJ8aConfig()

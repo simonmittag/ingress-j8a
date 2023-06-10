@@ -56,7 +56,7 @@ type J8a struct {
 }
 
 type Kube struct {
-	Client  *kubernetes.Clientset
+	Client  kubernetes.Interface
 	Config  *rest.Config
 	Version KVersion
 }
