@@ -2,8 +2,17 @@ package server
 
 import (
 	"k8s.io/client-go/kubernetes/fake"
+	"os"
 	"testing"
 )
+
+func setupSuite(tb testing.TB) func(tb testing.TB) {
+	os.Setenv("INGRESS_J8A_TEST_NOEXIT", "TRUE")
+
+	return func(tb testing.TB) {
+		os.Unsetenv("INGRESS_J8A_TEST_NOEXIT")
+	}
+}
 
 func TestNewServer(t *testing.T) {
 	s := NewServer()
@@ -50,4 +59,14 @@ func TestLogObjects(t *testing.T) {
 	s.Kube.Client = fake.NewSimpleClientset()
 
 	s.logObjects()
+}
+
+func TestBootstrap(t *testing.T) {
+	teardownSuite := setupSuite(t)
+	defer teardownSuite(t)
+
+	s := NewServer()
+	s.Kube.Client = fake.NewSimpleClientset()
+
+	s.Bootstrap()
 }

@@ -108,11 +108,11 @@ func (s *Server) Bootstrap() {
 		createOrDetectJ8aServiceTypeLoadBalancer().
 		updateJ8aDeploymentWithFullClusterConfig()
 
-	for {
+	for i := 0; i < 10; i++ {
 		s.logObjects()
 
 		//klog.Info("accessed config objects")
-		time.Sleep(time.Second * 7)
+		time.Sleep(time.Second * 6)
 	}
 }
 
@@ -281,7 +281,9 @@ func (s *Server) fetchIngress() (*nv1.IngressList, error) {
 }
 
 func (s *Server) panic(e error) {
-	msg := "shutdown cause: %v"
-	s.Log.Fatalf(msg, e)
-	os.Exit(-1)
+	if len(os.Getenv("INGRESS_J8A_TEST_NOEXIT")) == 0 {
+		msg := "shutdown cause: %v"
+		s.Log.Fatalf(msg, e)
+		os.Exit(-1)
+	}
 }
