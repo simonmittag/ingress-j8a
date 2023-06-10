@@ -40,7 +40,7 @@ jobs:
       TEST_RESULTS: /tmp/test-results
       LOGLEVEL: TRACE
       LOGCOLOR: TRUE
-      CC_TEST_REPORTER_ID: 9cbbfc8eec2e3c0a4b39f59edc541877c6c416cbc57ef52f5702cfaed9687c52
+      CC_TEST_REPORTER_ID: 8ea7863fb7ccdbc2ed7001ec9b0f788fe4ec663b97097dd20c74e1cc8eeaeca8
     steps:
       - checkout # check out source code to working directory
       - run:
