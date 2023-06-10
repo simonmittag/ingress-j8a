@@ -60,6 +60,8 @@ func TestJ8aReadConfigFile(t *testing.T) {
 	j8a_path, err := locateJ8a()
 	if err != nil {
 		t.Errorf("unable to build path to executable j8a for testing, cause: %v", err)
+	} else {
+		t.Logf("located exec: %v", j8a_path)
 	}
 
 	//check the config on the cli
