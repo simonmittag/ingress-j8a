@@ -120,7 +120,10 @@ func (s *Server) authenticate() *Server {
 	//TODO for now always authenticate external first to make development easier.
 	//put this behind a flag eventually and do internal as default
 	if e := s.authenticateToKubeExternal(); e != nil {
-		s.authenticateToKubeInternal()
+		e = s.authenticateToKubeInternal()
+		if e != nil {
+			s.panic(e)
+		}
 	}
 	return s
 }
@@ -159,7 +162,7 @@ func (s *Server) authenticateToKubeExternal() error {
 	return nil
 }
 
-func (s *Server) authenticateToKubeInternal() {
+func (s *Server) authenticateToKubeInternal() error {
 	const intErrMsg = "unable to authenticate internal to kubernetes control plane running at %v, cause: %v"
 
 	config, err := rest.InClusterConfig()
@@ -182,9 +185,9 @@ func (s *Server) authenticateToKubeInternal() {
 		if config != nil {
 			host = config.Host
 		}
-		s.panic(fmt.Errorf(intErrMsg, host, err))
+		return fmt.Errorf(intErrMsg, host, err)
 	}
-
+	return nil
 }
 
 func (s *Server) detectKubeVersion() {

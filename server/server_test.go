@@ -21,17 +21,33 @@ func TestAuthenticateToKubeExternal(t *testing.T) {
 	s.authenticateToKubeExternal()
 }
 
-//TODO cant test this it panics
-//func TestAuthenticateToKubeInternal(t *testing.T) {
-//	s := NewServer()
-//	s.Kube.Client = fake.NewSimpleClientset()
-//
-//	s.authenticateToKubeInternal()
-//}
+func TestAuthenticateToKubeInternal(t *testing.T) {
+	s := NewServer()
+	s.Kube.Client = fake.NewSimpleClientset()
+
+	e := s.authenticateToKubeInternal()
+	if e == nil {
+		t.Errorf("should not authenticate outside cluster")
+	}
+}
 
 func TestDetectKubeVersion(t *testing.T) {
 	s := NewServer()
 	s.Kube.Client = fake.NewSimpleClientset()
 
 	s.detectKubeVersion()
+}
+
+func TestCheckPermissions(t *testing.T) {
+	s := NewServer()
+	s.Kube.Client = fake.NewSimpleClientset()
+
+	s.checkPermissions()
+}
+
+func TestLogObjects(t *testing.T) {
+	s := NewServer()
+	s.Kube.Client = fake.NewSimpleClientset()
+
+	s.logObjects()
 }
