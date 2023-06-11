@@ -58,8 +58,10 @@ func TestBootstrap(t *testing.T) {
 	//uses a flag that needs resetting
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 
-	s := NewServer()
-	s.Attr[TestNoExit] = TestNoExit
+	s := NewServer(TestNoExit)
+	if !s.hasOption(TestNoExit) {
+		t.Errorf("needs to have test option")
+	}
 	s.Kube.Client = fake.NewSimpleClientset()
 
 	s.Bootstrap()

@@ -34,7 +34,7 @@ type Server struct {
 	Kube    *Kube
 	J8a     *J8a
 	Log     Logger
-	Attr    map[Attr]Attr
+	Options map[Option]Option
 }
 
 type Deployment struct {
@@ -68,14 +68,14 @@ type KVersion struct {
 	Minor int
 }
 
-type Attr string
+type Option string
 
 const (
-	TestNoExit Attr = "testNoExit"
+	TestNoExit Option = "testNoExit"
 )
 
 // TODO: this method contains a lot of defaults
-func NewServer() *Server {
+func NewServer(options ...Option) *Server {
 	return &Server{
 		Version: Version,
 		Kube: &Kube{
@@ -101,8 +101,14 @@ func NewServer() *Server {
 				Label: map[string]string{"app": "j8a"},
 			},
 		},
-		Log:  NewKLoggerWrapper(),
-		Attr: make(map[Attr]Attr),
+		Log: NewKLoggerWrapper(),
+		Options: func(options ...Option) map[Option]Option {
+			m := make(map[Option]Option)
+			for _, o := range options {
+				m[o] = o
+			}
+			return m
+		}(options...),
 	}
 }
 
@@ -291,14 +297,14 @@ func (s *Server) fetchIngress() (*nv1.IngressList, error) {
 }
 
 func (s *Server) panic(e error) {
-	if !s.hasAttr(TestNoExit) {
+	if !s.hasOption(TestNoExit) {
 		msg := "shutdown cause: %v"
 		s.Log.Fatalf(msg, e)
 		os.Exit(-1)
 	}
 }
 
-func (s *Server) hasAttr(attr Attr) bool {
-	_, ok := s.Attr[attr]
+func (s *Server) hasOption(option Option) bool {
+	_, ok := s.Options[option]
 	return ok
 }
