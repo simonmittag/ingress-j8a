@@ -59,10 +59,14 @@ func TestBootstrap(t *testing.T) {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 
 	s := NewServer(TestNoExit)
-	if !s.hasOption(TestNoExit) {
-		t.Errorf("needs to have test option")
-	}
 	s.Kube.Client = fake.NewSimpleClientset()
 
 	s.Bootstrap()
+}
+
+func TestOptions(t *testing.T) {
+	s := NewServer(TestNoExit)
+	if !s.hasOption(TestNoExit) {
+		t.Errorf("needs to have test option")
+	}
 }
