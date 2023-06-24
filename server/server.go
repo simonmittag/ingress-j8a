@@ -87,7 +87,7 @@ func NewServer(options ...Option) *Server {
 			},
 		},
 		J8a: &J8a{
-			Version:   "v1.0.1",
+			Version:   "v1.1.0",
 			Image:     "simonmittag/j8a",
 			Namespace: "j8a",
 			Deployment: Deployment{
