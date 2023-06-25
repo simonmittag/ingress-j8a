@@ -22,13 +22,12 @@ objects for j8a, keeps those configurations updated and manages instances of j8a
 ![](art/ingress-j8a.png)
 * `ingress-j8a` talks to kube apiserver via the golang kubernetes client and authenticates internal to the cluster with `j8a-serviceaccount` that is deployed together with the ingresscontroller. The `j8a-serviceaccount` has an associated `j8a-clusterrole` and `j8a-clusterrolebinding` to give it minimum privileges required to access cluster-wide `ingress` `ingressclass` `service` `configMap` and `secret` resources required.
 * `ingress-j8a` consumes cluster users `ingress` resources from all namespaces for the `ingressClass` j8a
-* 🚧 `ingress-j8a` consumes the actual ingressClass resource that specifies the controller class itself and reconfigures the controller pods accordingly. 
-  * Can number of replicas be controlled this way?
+* `ingress-j8a` creates the ingressClass resource that specifies the controller implementation itself. 
+  * J8a metadata (🚧 timeouts?) is controlled by modifying this resource and specifying `spec.parameters.key` that reconfigure j8a
 * `ingress-j8a` creates a `deployment` of j8a into the cluster by talking to the kubernetes API server. 
-  * once `ingress-j8a` is undeployed, the dependent deployment of j8a pods will also be undeployed.
-  * the intitial state (pre any ingresses found, and post any ingresses removed), is a default route to a liveness endpoint such as /about or similar.
+  * once `ingress-j8a` is undeployed, the dependent deployment of j8a pods will remain. upon re-deploy the controller recognizes the existing deployment.
   * Pods use off-the-shelf j8a images from dockerhub.
-  * Proxy config is passed via env.
+  * Proxy config is passed via env internally.
   * When proxy config needs to change, the deployment is updated with the contents of the env variable.
 * `ingress-j8a` allocates a `service` of type loadbalancer that forwards traffic to the proxy server pods.
 * j8a `pod` itself exposes ports 80 and 443 on it's clusterIp (depends on config from ingress.yml). It is accessed externally via the outer load balancer.

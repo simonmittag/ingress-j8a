@@ -151,7 +151,7 @@ func (s *Server) createOrDetectJ8aDeployment() *Server {
 			s.Log.Infof("detected deployment '%v'", result.ObjectMeta.Name)
 			r := int(*result.Spec.Replicas)
 			if r != s.J8a.Deployment.Replicas {
-				//TODO do we want to persist this? not strictly required, can be reread from kube anytime. deployment is source of truth.
+				//remember the current deployment scale of j8a
 				s.J8a.Deployment.Replicas = r
 				s.Log.Infof("j8a replicas configuration set to %v based on current value of deployment '%v'", r, result.ObjectMeta.Name)
 			}
