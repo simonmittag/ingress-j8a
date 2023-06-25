@@ -111,12 +111,12 @@ func locateJ8a() (string, error) {
 	switch runtime.GOOS {
 	case "darwin":
 		//universal binary for arm and intel Macs
-		j8a_path = "resources/tools/j8a_1.0.1_darwin_all/j8a"
+		j8a_path = "resources/tools/j8a_1.1.0_darwin_all/j8a"
 	case "arm":
 		//linux arm
-		j8a_path = "resources/tools/j8a_1.0.1_linux_arm64/j8a"
+		j8a_path = "resources/tools/j8a_1.1.0_linux_arm64/j8a"
 	default:
-		j8a_path = "resources/tools/j8a_1.0.1_linux_amd64/j8a"
+		j8a_path = "resources/tools/j8a_1.1.0_linux_amd64/j8a"
 	}
 
 	//find the executable in the tree
