@@ -216,7 +216,7 @@ func (s *Server) updateCacheFromIngressList(il *netv1.IngressList) {
 					for _, p := range r.HTTP.Paths {
 						//TODO: these routes need to be collected in a list
 						jr := NewRouteFrom(p.Path, r.Host, p.PathType, findResource(p.Backend))
-						s.Cache.update(jr)
+						s.Cache.update(*jr)
 					}
 				}
 			}

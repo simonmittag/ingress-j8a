@@ -34,6 +34,8 @@ func (c *Cache) update(data interface{}) {
 	case []Route:
 		m.Routes = data.([]Route)
 		m.SetHash()
+	case Route:
+		m.Routes = append(m.Routes, data.(Route))
 	}
 
 	//TODO: does not do []Route currently individual route.
