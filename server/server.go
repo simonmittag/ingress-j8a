@@ -35,6 +35,7 @@ type Server struct {
 	J8a     *J8a
 	Log     Logger
 	Options map[Option]Option
+	Cache   *Cache
 }
 
 type Deployment struct {
@@ -109,6 +110,7 @@ func NewServer(options ...Option) *Server {
 			}
 			return m
 		}(options...),
+		Cache: NewCache(),
 	}
 }
 
