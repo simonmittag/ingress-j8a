@@ -200,12 +200,34 @@ func (s *Server) createOrDetectJ8aIngressClass() *Server {
 // server cannot process listener callbacks while this is running (but it could queue them)
 func (s *Server) updateJ8aDeploymentWithFullClusterConfig() {
 	il, _ := s.fetchIngress()
-	for _, igrs := range il.Items {
-		_ = igrs.Spec.Rules
-	}
+	s.updateCacheFromIngressList(il)
 
 	// get services
 	// get secrets
+}
+
+func (s *Server) updateCacheFromIngressList(il *netv1.IngressList) {
+	for _, igrs := range il.Items {
+		//we only process ingress where class is specified and points to J8a. Older kube versions without
+		//ingressclass are not supported.
+		if igrs.Spec.IngressClassName != nil && *igrs.Spec.IngressClassName == s.J8a.IngressClass {
+			for _, r := range igrs.Spec.Rules {
+				if r.HTTP != nil {
+					for _, p := range r.HTTP.Paths {
+						//TODO: these routes need to be collected in a list
+						jr := NewRouteFrom(p.Path, r.Host, p.PathType, findResource(p.Backend))
+						_ = jr
+					}
+				}
+			}
+		}
+	}
+}
+
+func findResource(backend netv1.IngressBackend) string {
+	//TODO returned the name of a lazy initialized resource.
+	//this method upserts resources to a cached store
+	return ""
 }
 
 func getTemplateJ8aConfig() string {
