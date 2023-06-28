@@ -215,19 +215,12 @@ func (s *Server) updateCacheFromIngressList(il *netv1.IngressList) {
 				if r.HTTP != nil {
 					for _, p := range r.HTTP.Paths {
 						//TODO: these routes need to be collected in a list
-						jr := NewRouteFrom(p.Path, r.Host, p.PathType, findResource(p.Backend))
-						s.Cache.update(*jr)
+						s.Cache.update(*NewRouteFrom(p.Path, r.Host, p.PathType, s.findServiceDNSName(p.Backend)))
 					}
 				}
 			}
 		}
 	}
-}
-
-func findResource(backend netv1.IngressBackend) string {
-	//TODO returned the name of a lazy initialized resource.
-	//this method upserts resources to a cached store
-	return ""
 }
 
 func getTemplateJ8aConfig() string {

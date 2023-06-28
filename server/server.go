@@ -5,8 +5,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	v1 "k8s.io/api/core/v1"
-	nv1 "k8s.io/api/networking/v1"
+	corev1 "k8s.io/api/core/v1"
+	netv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
@@ -274,25 +274,58 @@ func (s *Server) logObjects() {
 	s.Log.Infof("detected %d ingress", len(il.Items))
 }
 
-func (s *Server) fetchServices() (*v1.ServiceList, error) {
+func (s *Server) fetchServices() (*corev1.ServiceList, error) {
 	return s.Kube.Client.CoreV1().Services("").List(
 		context.TODO(),
 		metav1.ListOptions{})
 }
 
-func (s *Server) fetchConfigMaps() (*v1.ConfigMapList, error) {
+func (s *Server) findServiceDNSName(b netv1.IngressBackend) string {
+	defaultNs := "default"
+	defaultFqdn := "svc.cluster.local"
+
+	var dnsn string
+	var rsvc corev1.Service
+	svcs, e := s.fetchServices()
+	if e == nil {
+	Services:
+		for _, svc := range svcs.Items {
+			if svc.Name == b.Service.Name {
+				rsvc = svc
+				break Services
+			}
+		}
+		if len(rsvc.Name) > 0 {
+			dnsn = rsvc.Name + "."
+			if len(rsvc.Namespace) > 0 {
+				dnsn = dnsn + rsvc.Namespace
+			} else {
+				dnsn = dnsn + defaultNs
+			}
+			dnsn = dnsn + "." + defaultFqdn
+		} else {
+			dnsn = b.Service.Name + "." + defaultNs + "." + defaultFqdn
+		}
+	} else {
+		dnsn = b.Service.Name + "." + defaultNs + "." + defaultFqdn
+	}
+
+	return dnsn
+}
+
+func (s *Server) fetchConfigMaps() (*corev1.ConfigMapList, error) {
 	return s.Kube.Client.CoreV1().ConfigMaps("").List(
 		context.TODO(),
 		metav1.ListOptions{})
 }
 
-func (s *Server) fetchSecrets() (*v1.SecretList, error) {
+func (s *Server) fetchSecrets() (*corev1.SecretList, error) {
 	return s.Kube.Client.CoreV1().Secrets("").List(
 		context.TODO(),
 		metav1.ListOptions{})
 }
 
-func (s *Server) fetchIngress() (*nv1.IngressList, error) {
+func (s *Server) fetchIngress() (*netv1.IngressList, error) {
 	return s.Kube.Client.NetworkingV1().Ingresses("").List(
 		context.TODO(),
 		metav1.ListOptions{})

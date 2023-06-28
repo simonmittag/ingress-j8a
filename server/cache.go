@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"k8s.io/apimachinery/pkg/util/json"
+	"k8s.io/klog/v2"
 	"sync"
 	"time"
 )
@@ -36,6 +37,7 @@ func (c *Cache) update(data interface{}) {
 		m.SetHash()
 	case Route:
 		m.Routes = append(m.Routes, data.(Route))
+		klog.Infof("route added %v", data)
 	}
 
 	//TODO: does not do []Route currently individual route.
