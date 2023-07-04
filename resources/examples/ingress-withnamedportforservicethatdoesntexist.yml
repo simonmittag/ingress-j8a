@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ingress-prefixpath
+  name: ingress-withnamedportforservicethatdoesntexist
   namespace: default
 spec:
   ingressClassName: ingress-j8a
@@ -15,4 +15,4 @@ spec:
               service:
                 name: s1
                 port:
-                  number: 80
+                  name: http

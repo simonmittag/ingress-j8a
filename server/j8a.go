@@ -211,11 +211,27 @@ func (s *Server) updateCacheFromIngressList(il *netv1.IngressList) {
 		//we only process ingress where class is specified and points to J8a. Older kube versions without
 		//ingressclass are not supported.
 		if igrs.Spec.IngressClassName != nil && *igrs.Spec.IngressClassName == s.J8a.IngressClass {
+			if db := igrs.Spec.DefaultBackend; db != nil {
+				s1 := s.fetchServiceDNSName(*db)
+				_ = s1
+			}
 			for _, r := range igrs.Spec.Rules {
 				if r.HTTP != nil {
-					for _, p := range r.HTTP.Paths {
-						//TODO: these routes need to be collected in a list
-						s.Cache.update(*NewRouteFrom(p.Path, r.Host, p.PathType, s.findServiceDNSName(p.Backend)))
+					for _, b := range r.HTTP.Paths {
+						//TODO: these routes need hashed, then cached as resources.
+						s1 := s.fetchServiceDNSName(b.Backend)
+						//TODO: find a named service port if it is available, then look up the name and port.
+						//TODO: if this fails, skip the faulty ingress resource, don't include in config
+						po, e := s.FetchBackendServicePort(b.Backend)
+						_ = po
+						_ = e
+						jr := *NewRouteFrom(b.Path,
+							r.Host,
+							b.PathType,
+							s1)
+
+						s.Cache.update(jr)
+
 					}
 				}
 			}

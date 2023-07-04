@@ -280,7 +280,30 @@ func (s *Server) fetchServices() (*corev1.ServiceList, error) {
 		metav1.ListOptions{})
 }
 
-func (s *Server) findServiceDNSName(b netv1.IngressBackend) string {
+func (s *Server) FetchBackendServicePort(ib netv1.IngressBackend) (string, error) {
+	if ib.Service == nil {
+		return "", errors.New(fmt.Sprintf("invalid cluster config, cannot find service backend"))
+	}
+	b := *ib.Service
+	if len(b.Port.Name) > 0 {
+		servicesClient := s.Kube.Client.CoreV1().Services("default")
+		r, err := servicesClient.Get(context.TODO(), b.Name, metav1.GetOptions{})
+		if err == nil {
+			for _, p := range r.Spec.Ports {
+				if p.Name == b.Port.Name {
+					return fmt.Sprintf("%v", b.Port.Number), nil
+				}
+			}
+			return "", errors.New(fmt.Sprintf("invalid cluster config cannot find named port %v", b.Port.Name))
+		}
+		return "", errors.New(fmt.Sprintf("invalid cluster config cannot service %v", b.Name))
+	} else {
+		//just return port number, this is the default
+		return fmt.Sprintf("%v", b.Port.Number), nil
+	}
+}
+
+func (s *Server) fetchServiceDNSName(b netv1.IngressBackend) string {
 	defaultNs := "default"
 	defaultFqdn := "svc.cluster.local"
 
