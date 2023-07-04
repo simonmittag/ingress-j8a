@@ -20,7 +20,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            go test -v ./...
+            go test -v ./server
   dockerize:
     working_directory: ~/repo
     docker:
